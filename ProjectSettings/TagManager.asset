@@ -6,6 +6,7 @@ TagManager:
   tags:
   - PlayerBase
   - Tree
+  - Bounds
   layers:
   - Default
   - TransparentFX

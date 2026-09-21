@@ -25,8 +25,13 @@ public class UnitButton : MonoBehaviour
 
     void Update()
     {
-        if (spawner == null || resourceManager == null || populationManager == null)
-            return;
+        if (spawner == null || resourceManager == null || populationManager == null) 
+        { 
+            spawner = FindFirstObjectByType<UnitProductionManager>();
+
+            if (spawner == null) return;
+        }
+
 
         UnitProductionManager.UnitData unit = spawner.availableUnits[unitIndex];
 
@@ -43,6 +48,7 @@ public class UnitButton : MonoBehaviour
         if (spawner != null)
         {
             spawner.QueueUnit(unitIndex);
+            
         }
     }
 }

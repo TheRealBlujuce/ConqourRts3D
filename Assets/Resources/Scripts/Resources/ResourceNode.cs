@@ -9,6 +9,7 @@ public class ResourceNode : MonoBehaviour
     public ResourceType resourceType;
     public int maxResources = 100;
     private int remainingResources;
+    public bool isStartingNode;
 
     [Header("Harvest Settings")]
     public int resourcePerHarvest = 10;
@@ -29,6 +30,22 @@ public class ResourceNode : MonoBehaviour
     private NavUpdater navUpdater;
     private MeshRenderer[] meshRenderers;
     private Camera mainCam;
+
+    private void OnEnable()
+    {
+        if (NodeRegistry.Instance != null)
+        {
+            NodeRegistry.Instance.RegisterResourceNode(this);
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (NodeRegistry.Instance != null)
+        {
+            NodeRegistry.Instance.UnregisterResourceNode(this);
+        }
+    }
 
     private void Start()
     {
@@ -59,10 +76,7 @@ public class ResourceNode : MonoBehaviour
 
     private void HandleSelectionFade()
     {
-        if (selection == null) return;
-
-        if (isSelected) targetAlpha = 1f;
-        else if (isHovered) targetAlpha = 0.5f;
+        if (isHovered) targetAlpha = 1f;
         else targetAlpha = 0f;
 
         Color currentColor = selection.color;
@@ -98,26 +112,6 @@ public class ResourceNode : MonoBehaviour
             resourceCanvas.gameObject.SetActive(true);
         }
     }
-
-    //private void HandleVisibilityCulling()
-    //{
-    //    if (mainCam == null) return;
-
-    //    Vector3 viewportPos = mainCam.WorldToViewportPoint(transform.position);
-
-    //    bool onScreen =
-    //        viewportPos.z > 0 && 
-    //        viewportPos.x > 0 && viewportPos.x < 1 &&
-    //        viewportPos.y > 0 && viewportPos.y < 1;
-
-    //    foreach (var mr in meshRenderers)
-    //    {
-    //        if (mr != null) mr.enabled = onScreen;
-    //    }
-
-    //    if (resourceCanvas != null)
-    //        resourceCanvas.enabled = onScreen;
-    //}
 
     public void SetSelected(bool selected)
     {
@@ -156,12 +150,15 @@ public class ResourceNode : MonoBehaviour
     public int GetRemainingResources() => remainingResources;
 
     private void OnTriggerEnter(Collider collision)
-    {
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Building"))
-            Destroy(gameObject);
+    {   
+        if (!isStartingNode)
+        {
+            if (collision.gameObject.layer == LayerMask.NameToLayer("Building"))
+                Destroy(gameObject);
 
-        if (gameObject.name.Contains("Tree") &&
-            collision.gameObject.layer == LayerMask.NameToLayer("Resource"))
-            Destroy(gameObject);
+            if (gameObject.name.Contains("Tree") &&
+                collision.gameObject.layer == LayerMask.NameToLayer("Resource"))
+                Destroy(gameObject);
+        }
     }
 }

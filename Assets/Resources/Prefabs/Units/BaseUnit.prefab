@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 8474147207856560869}
   - component: {fileID: 2429641549246480274}
   - component: {fileID: 8943496075252517345}
-  - component: {fileID: -1174841831996804961}
   - component: {fileID: 7411893588645483646}
   - component: {fileID: 8002218550414738435}
   m_Layer: 6
@@ -32,7 +31,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 25, y: 0, z: 10}
-  m_LocalScale: {x: 0.75, y: 0.75, z: 0.75}
+  m_LocalScale: {x: 0.6, y: 0.6, z: 0.6}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4902634595775287535}
@@ -108,21 +107,6 @@ MonoBehaviour:
   lumberVisual: {fileID: 8980608413393641155}
   foodVisual: {fileID: 5596804941073902953}
   harvestTool: {fileID: 1900190606056803550}
---- !u!114 &-1174841831996804961
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 38670299232851612}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7118981a6b1697e448d272d4e0ba480f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  tiltAmount: 4
-  tiltSpeed: 2
-  tiltAxis: {x: 0, y: 0, z: 1}
 --- !u!195 &7411893588645483646
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -141,7 +125,7 @@ NavMeshAgent:
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
-  m_Height: 4
+  m_Height: 5
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
@@ -1012,7 +996,11 @@ PrefabInstance:
         type: 3}
       insertIndex: 1
       addedObject: {fileID: 3458171046699974326}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: dfe495b15cf99f14287e4a1a62b69ecb,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5919665214312423203}
   m_SourcePrefab: {fileID: 100100000, guid: dfe495b15cf99f14287e4a1a62b69ecb, type: 3}
 --- !u!4 &1255722541887029971 stripped
 Transform:
@@ -1020,6 +1008,27 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 2001919019118852163}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1659954059695637778 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: dfe495b15cf99f14287e4a1a62b69ecb,
+    type: 3}
+  m_PrefabInstance: {fileID: 2001919019118852163}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5919665214312423203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1659954059695637778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7118981a6b1697e448d272d4e0ba480f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tiltAmount: 4
+  tiltSpeed: 2
+  tiltAxis: {x: 0, y: 0, z: 1}
 --- !u!4 &2036339243400306600 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: dfe495b15cf99f14287e4a1a62b69ecb,

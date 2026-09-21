@@ -13,6 +13,7 @@ public class UnitProductionManager : MonoBehaviour
         public int foodCost;
         public int populationCost;
         public float buildTime = 3f; // time before spawn
+        public int threatAmount;
     }
 
     public List<UnitData> availableUnits = new List<UnitData>();
@@ -61,7 +62,7 @@ public class UnitProductionManager : MonoBehaviour
         if (index < 0 || index >= availableUnits.Count) return false;
 
         UnitData unit = availableUnits[index];
-
+        
         // Check population
         if (populationManager.currentPopulation + unit.populationCost > populationManager.maxPopulation)
         {
@@ -92,7 +93,9 @@ public class UnitProductionManager : MonoBehaviour
             buildTimer = unit.buildTime;
             isBuilding = true;
         }
-
+        
+        populationManager.AddPopulation(unit.populationCost);
+        
         return true;
     }
 
@@ -106,6 +109,7 @@ public class UnitProductionManager : MonoBehaviour
 		newUnit.GetComponent<UnitStats>().populationCost = unit.populationCost;
 		newUnit.GetComponent<UnitStats>().isPlayerUnit = true;
 
-        populationManager.AddPopulation(unit.populationCost);
+        // populationManager.AddPopulation(unit.populationCost);
+        ThreatManager.Instance.AddThreat(newUnit.GetComponent<UnitStats>().threatAmount);
 	}
 }

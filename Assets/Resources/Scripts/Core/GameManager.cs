@@ -11,6 +11,9 @@ public class GameManager : MonoBehaviour
 
     [Header("Game Settings")]
 	public Race playerRace = Race.Orc; // Default player race
+	[SerializeField] private FactionSet.Faction currentFaction = FactionSet.Faction.Orc;
+	[SerializeField] private FactionSet.Faction currentEnemyFaction = FactionSet.Faction.Human;
+	[SerializeField] private FactionSet factionSwapper;
 
 	[Header("Dependencies")]
     [SerializeField] private ResourceManager resourceManager; // Reference to the ResourceManager
@@ -20,6 +23,7 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private CameraController cameraController;
 	[SerializeField] private InstancedTreeManager treeManager;
 	[SerializeField] private PopulationManager populationManager;
+
 
 	[SerializeField] private TextMeshProUGUI currentFoodText;
 	[SerializeField] private TextMeshProUGUI currentLumberText;
@@ -67,7 +71,15 @@ public class GameManager : MonoBehaviour
 		selectionBox.SetCamera(Camera.main);
 
 		cameraController = FindFirstObjectByType<CameraController>();
-		cameraController.terrain = FindFirstObjectByType<Terrain>();
+		BoxCollider[] bounds = FindObjectsByType<BoxCollider>(FindObjectsSortMode.None);
+		
+		foreach (BoxCollider collider in bounds)
+		{
+			if (collider.CompareTag("Bounds") == true)
+			{
+				cameraController.cameraBounds = collider;
+			}
+		}
 
 		resourceManager = FindFirstObjectByType<ResourceManager>();
 		populationManager = FindFirstObjectByType<PopulationManager>();
@@ -75,6 +87,8 @@ public class GameManager : MonoBehaviour
 		resourceManager.SetPopManager(populationManager);
 		resourceManager.ResetResources();
 		populationManager.RecalculateCurrentPopulation();
+
+		factionSwapper = GetComponent<FactionSet>();
 
 		InitializeGameDependencies();
 
@@ -123,7 +137,7 @@ public class GameManager : MonoBehaviour
 
 	private void Update()
 	{
-		if (Input.GetKeyDown(KeyCode.R))
+		if (Input.GetKeyDown(KeyCode.RightShift) && Input.GetKeyDown(KeyCode.R))
 		{
 			// Get the currently active scene and reload it
 			Scene currentScene = SceneManager.GetActiveScene();
@@ -134,6 +148,27 @@ public class GameManager : MonoBehaviour
 		{
 			// Get the currently active scene and reload it
 			navUpdater.UpdateNavMesh();
+		}
+
+		if (Input.GetKeyDown(KeyCode.F))
+		{
+			// Move to the next faction
+			currentFaction++;
+
+			// If we've gone past the final faction,
+			// loop back to the first faction
+			if ((int)currentFaction >= System.Enum.GetValues(
+					typeof(FactionSet.Faction)).Length)
+			{
+				currentFaction = 0;
+			}
+
+			// Tell the faction swapper which faction we're changing to
+			factionSwapper.selectedFaction = currentFaction;
+
+			Debug.Log($"Swapping player faction to: {currentFaction}");
+
+			factionSwapper.SwapModels();
 		}
 	}
 

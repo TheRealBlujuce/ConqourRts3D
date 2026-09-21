@@ -3,113 +3,211 @@ using UnityEngine;
 public class CameraController : MonoBehaviour
 {
     [Header("Movement Settings")]
-    public float moveSpeed = 15f; // pan speed
-    public float zoomSpeed = 10f; // orthographic zoom speed
-    public float minZoom = 5f;    // smallest orthographic size
-    public float maxZoom = 50f;   // largest orthographic size
+    public float moveSpeed = 15f;
+    public float zoomSpeed = 10f;
+    public float minZoom = 5f;
+    public float maxZoom = 50f;
     public float movementLerpFactor = 5f;
     public float zoomLerpFactor = 5f;
 
     [Header("Initial Position")]
     public string playerBaseTag = "PlayerBase";
-    public Vector3 initialOffset = new Vector3(0, 0, 0);
+    public Vector3 initialOffset = Vector3.zero;
 
     [Header("Bounds Settings")]
-    public Terrain terrain; // assign in inspector (auto-found if null)
+    [SerializeField] public BoxCollider cameraBounds;
 
     private Vector3 targetPosition;
     private float targetOrthoSize;
     private Camera cam;
 
-    void Start()
+    private void Start()
     {
         cam = Camera.main;
-        cam.orthographic = true; // force orthographic
 
-        if (terrain == null)
-            terrain = Terrain.activeTerrain;
+        if (cam == null)
+        {
+            Debug.LogError("CameraController could not find the Main Camera.");
+            return;
+        }
 
-        GameObject playerBase = GameObject.FindGameObjectWithTag(playerBaseTag);
+        cam.orthographic = true;
+
+        GameObject playerBase =
+            GameObject.FindGameObjectWithTag(playerBaseTag);
+
         if (playerBase != null)
         {
-            targetPosition = playerBase.transform.position + initialOffset;
-            transform.position = targetPosition;
+            targetPosition =
+                playerBase.transform.position + initialOffset;
+
+            transform.position = new Vector3(
+                targetPosition.x,
+                transform.position.y,
+                targetPosition.z
+            );
         }
         else
         {
-            Debug.LogWarning($"Player base with tag '{playerBaseTag}' not found. Using current camera position.");
+            Debug.LogWarning(
+                $"Player base with tag '{playerBaseTag}' not found. " +
+                $"Using current camera position."
+            );
+
             targetPosition = transform.position;
         }
 
         targetOrthoSize = minZoom;
+
+        ClampToBounds();
     }
 
-    void Update()
+    private void Update()
     {
         HandleMovement();
         HandleZoom();
-        ClampToTerrainBounds();
+
+        ClampToBounds();
 
         // Smooth position
+        Vector3 desiredPosition = new Vector3(
+            targetPosition.x,
+            transform.position.y,
+            targetPosition.z
+        );
+
         transform.position = Vector3.Lerp(
             transform.position,
-            new Vector3(targetPosition.x, 0f, targetPosition.z),
+            desiredPosition,
             Time.deltaTime * movementLerpFactor
         );
 
         // Smooth zoom
-        cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, targetOrthoSize, Time.deltaTime * zoomLerpFactor);
+        cam.orthographicSize = Mathf.Lerp(
+            cam.orthographicSize,
+            targetOrthoSize,
+            Time.deltaTime * zoomLerpFactor
+        );
     }
 
-    void HandleMovement()
+    private void HandleMovement()
     {
         float moveX = Input.GetAxis("Horizontal");
         float moveZ = Input.GetAxis("Vertical");
 
-        Vector3 forwardXZ = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
-        Vector3 rightXZ = Vector3.ProjectOnPlane(transform.right, Vector3.up).normalized;
+        Vector3 forwardXZ =
+            Vector3.ProjectOnPlane(
+                transform.forward,
+                Vector3.up
+            ).normalized;
 
-        targetPosition += (forwardXZ * moveZ + rightXZ * moveX) * moveSpeed * Time.deltaTime;
+        Vector3 rightXZ =
+            Vector3.ProjectOnPlane(
+                transform.right,
+                Vector3.up
+            ).normalized;
+
+        targetPosition +=
+            (forwardXZ * moveZ + rightXZ * moveX)
+            * moveSpeed
+            * Time.deltaTime;
     }
 
-    void HandleZoom()
+    private void HandleZoom()
     {
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        float scroll =
+            Input.GetAxis("Mouse ScrollWheel");
 
-        if (Mathf.Abs(scroll) > 0.001f)
+        if (Mathf.Abs(scroll) <= 0.001f)
+            return;
+
+        targetOrthoSize -=
+            scroll * zoomSpeed;
+
+        targetOrthoSize = Mathf.Clamp(
+            targetOrthoSize,
+            minZoom,
+            maxZoom
+        );
+    }
+
+    private void ClampToBounds()
+    {
+        if (cameraBounds == null)
+            return;
+
+        Bounds bounds = cameraBounds.bounds;
+
+        float tiltRad =
+            Mathf.Deg2Rad * transform.eulerAngles.x;
+
+        // Orthographic camera dimensions
+        float halfViewHeight = targetOrthoSize;
+        float halfViewWidth =
+            targetOrthoSize * cam.aspect;
+
+        // Camera footprint on the ground
+        float xExtent = halfViewWidth;
+
+        float zExtent =
+            Mathf.Abs(Mathf.Sin(tiltRad))
+            * halfViewHeight;
+
+
+        // Keep the visible camera area inside the cube.
+        float minX =
+            bounds.min.x + xExtent;
+
+        float maxX =
+            bounds.max.x - xExtent;
+
+        float minZ =
+            bounds.min.z + zExtent;
+
+        float maxZ =
+            bounds.max.z - zExtent;
+
+
+        // Protect against the camera view becoming
+        // larger than the bounds.
+        if (minX > maxX)
         {
-            targetOrthoSize -= scroll * zoomSpeed;
-            targetOrthoSize = Mathf.Clamp(targetOrthoSize, minZoom, maxZoom);
+            targetPosition.x =
+                bounds.center.x;
+        }
+        else
+        {
+            targetPosition.x =
+                Mathf.Clamp(
+                    targetPosition.x,
+                    minX,
+                    maxX
+                );
+        }
+
+
+        if (minZ > maxZ)
+        {
+            targetPosition.z =
+                bounds.center.z;
+        }
+        else
+        {
+            targetPosition.z =
+                Mathf.Clamp(
+                    targetPosition.z,
+                    minZ,
+                    maxZ
+                );
         }
     }
 
-    void ClampToTerrainBounds()
+    public void SetCameraBounds(
+        BoxCollider newBounds
+    )
     {
-        if (terrain == null) return;
+        cameraBounds = newBounds;
 
-        Vector3 terrainPos = terrain.transform.position;
-        Vector3 terrainSize = terrain.terrainData.size;
-
-        float tiltRad = Mathf.Deg2Rad * transform.eulerAngles.x;
-
-        // Project orthographic size onto X and Z directions
-        float halfViewHeight = targetOrthoSize;
-        float halfViewWidth = targetOrthoSize * cam.aspect;
-
-        // How much of the height extends forward/back due to tilt
-        float zExtent = Mathf.Sin(tiltRad) * halfViewHeight;
-        float yCompensatedHeight = Mathf.Cos(tiltRad) * halfViewHeight; // vertical component — not needed for clamp but helps visualization
-
-        // X extent is purely horizontal width
-        float xExtent = halfViewWidth;
-
-        float minX = terrainPos.x + xExtent;
-        float maxX = terrainPos.x + terrainSize.x - xExtent;
-
-        float minZ = terrainPos.z + zExtent;
-        float maxZ = terrainPos.z + terrainSize.z - zExtent;
-
-        targetPosition.x = Mathf.Clamp(targetPosition.x, minX, maxX);
-        targetPosition.z = Mathf.Clamp(targetPosition.z, minZ, maxZ);
+        ClampToBounds();
     }
 }

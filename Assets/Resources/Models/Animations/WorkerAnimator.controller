@@ -7,8 +7,8 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: UnitBody|UnitMove
-  m_Speed: 3.25
+  m_Name: WorkerMove
+  m_Speed: 0.85
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: 3257237446424605393}
@@ -21,8 +21,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 3258002363609952718, guid: dfe495b15cf99f14287e4a1a62b69ecb,
-    type: 3}
+  m_Motion: {fileID: 7400000, guid: a5e048046f07a2c488951ad50961e8cd, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -68,7 +67,7 @@ AnimatorStateTransition:
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.25000006
+  m_TransitionDuration: 0.25
   m_TransitionOffset: 0
   m_ExitTime: 0
   m_HasExitTime: 0
@@ -83,7 +82,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: UnitBody|UnitGather
+  m_Name: WorkerGather
   m_Speed: 2
   m_CycleOffset: 0
   m_Transitions:
@@ -98,8 +97,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7350576995182732870, guid: dfe495b15cf99f14287e4a1a62b69ecb,
-    type: 3}
+  m_Motion: {fileID: 7400000, guid: a6552bbc8110e1c4a9be6b8e72fe41b7, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -168,8 +166,8 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: UnitBody|UnitIdle
-  m_Speed: 1
+  m_Name: WorkerIdle
+  m_Speed: 2
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: -5528135376881961407}
@@ -182,8 +180,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 1703321415045991264, guid: dfe495b15cf99f14287e4a1a62b69ecb,
-    type: 3}
+  m_Motion: {fileID: 7400000, guid: d155240c059154a44865e8a57223e29c, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -240,9 +237,9 @@ AnimatorStateTransition:
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0
+  m_TransitionDuration: 0.15
   m_TransitionOffset: 0
-  m_ExitTime: 0
+  m_ExitTime: 9.3010477e-10
   m_HasExitTime: 0
   m_HasFixedDuration: 1
   m_InterruptionSource: 0

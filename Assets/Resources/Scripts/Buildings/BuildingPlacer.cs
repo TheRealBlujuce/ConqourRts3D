@@ -7,7 +7,8 @@ public class BuildingPlacer : MonoBehaviour
     public Material canPlaceMat;
     public Material cannotPlaceMat;
     public LayerMask blockingLayers; // Units, buildings, resources
-
+    public int threatAmount = 10;
+    
     [Header("References")]
     public GameObject buildingPrefab;
     private Renderer placerRenderer;
@@ -108,6 +109,7 @@ public class BuildingPlacer : MonoBehaviour
     private void PlaceBuilding()
     {
         Instantiate(buildingPrefab, transform.position, transform.localRotation);
+        ThreatManager.Instance.AddThreat(threatAmount);
         Destroy(gameObject); // Destroy placer after placement
     }
 
