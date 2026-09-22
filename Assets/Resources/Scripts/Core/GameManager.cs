@@ -4,13 +4,16 @@ using Unity.AI.Navigation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public enum Race { Human, Orc }
+public enum Race { Orc, Human, Undead, Elf }
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
     [Header("Game Settings")]
 	public Race playerRace = Race.Orc; // Default player race
+	public Race enemyRace = Race.Human;
+
+	// These are for the FactionSet Class used to quickly debug the 4 races, ensuring models and whatnot are correct between them all.
 	[SerializeField] private FactionSet.Faction currentFaction = FactionSet.Faction.Orc;
 	[SerializeField] private FactionSet.Faction currentEnemyFaction = FactionSet.Faction.Human;
 	[SerializeField] private FactionSet factionSwapper;
@@ -174,4 +177,6 @@ public class GameManager : MonoBehaviour
 
 	public NavUpdater GetNavUpdater() => navUpdater;
 	public PopulationManager GetPopulationManager() => populationManager;
+
+	public FactionSet GetFactionSet() => factionSwapper;
 }

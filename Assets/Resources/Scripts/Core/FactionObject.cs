@@ -8,8 +8,13 @@ public class FactionObject : MonoBehaviour
     {
         Base,
         House,
-        Lumberyard,
+        Storehouse,
+        Barracks,
+        Altar,
         Worker,
-        BasicMelee
+        BasicMelee,
+        BasicRanged,
+        BasicSupport,
+        Hero
     }
 }

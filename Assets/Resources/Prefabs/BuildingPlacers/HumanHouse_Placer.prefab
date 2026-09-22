@@ -136,12 +136,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58939b3ce875c77479f7d1f264563589, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridSize: 1
+  goldCost: 75
+  lumberCost: 100
+  foodCost: 0
+  gridSize: 4
+  groundY: -50
   canPlaceMat: {fileID: 2100000, guid: 4ebfda586c6b0894f865746cc6a888bb, type: 2}
   cannotPlaceMat: {fileID: 2100000, guid: 0a6cbd9fd5a51844b8d92f5f1491ace2, type: 2}
   blockingLayers:
     serializedVersion: 2
     m_Bits: 1600
-  threatAmount: 3
+  threatAmount: 2
   buildingPrefab: {fileID: 945397006792846903, guid: a782639b3c51aaa469e592bfd3ed9923,
     type: 3}

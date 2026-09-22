@@ -21,7 +21,8 @@ public class FactionSet : MonoBehaviour
     [Header("Orc References")]
     public GameObject playerBase_Orc;
     public GameObject playerHouse_Orc;
-    public GameObject playerLumberyard_Orc;
+    public GameObject playerStorehouse_Orc;
+    public GameObject playerBarracks_Orc;
     public GameObject playerWorker_Orc;
     public GameObject playerBasicMelee_Orc;
 
@@ -33,7 +34,8 @@ public class FactionSet : MonoBehaviour
     [Header("Human References")]
     public GameObject playerBase_Human;
     public GameObject playerHouse_Human;
-    public GameObject playerLumberyard_Human;
+    public GameObject playerStorehouse_Human;
+    public GameObject playerBarracks_Human;
     public GameObject playerWorker_Human;
     public GameObject playerBasicMelee_Human;
 
@@ -45,7 +47,8 @@ public class FactionSet : MonoBehaviour
     [Header("Undead References")]
     public GameObject playerBase_Undead;
     public GameObject playerHouse_Undead;
-    public GameObject playerLumberyard_Undead;
+    public GameObject playerBarracks_Undead;
+    public GameObject playerStorehouse_Undead;
     public GameObject playerWorker_Undead;
     public GameObject playerBasicMelee_Undead;
 
@@ -57,7 +60,8 @@ public class FactionSet : MonoBehaviour
     [Header("Elf References")]
     public GameObject playerBase_Elf;
     public GameObject playerHouse_Elf;
-    public GameObject playerLumberyard_Elf;
+    public GameObject playerStorehouse_Elf;
+    public GameObject playerBarracks_Elf;
     public GameObject playerWorker_Elf;
     public GameObject playerBasicMelee_Elf;
 
@@ -121,8 +125,11 @@ public class FactionSet : MonoBehaviour
                     case FactionObject.ObjectType.House:
                         return playerHouse_Orc;
 
-                    case FactionObject.ObjectType.Lumberyard:
-                        return playerLumberyard_Orc;
+                    case FactionObject.ObjectType.Storehouse:
+                        return playerStorehouse_Orc;
+
+                    case FactionObject.ObjectType.Barracks:
+                        return playerBarracks_Orc;
 
                     case FactionObject.ObjectType.Worker:
                         return playerWorker_Orc;
@@ -148,8 +155,11 @@ public class FactionSet : MonoBehaviour
                     case FactionObject.ObjectType.House:
                         return playerHouse_Human;
 
-                    case FactionObject.ObjectType.Lumberyard:
-                        return playerLumberyard_Human;
+                    case FactionObject.ObjectType.Storehouse:
+                        return playerStorehouse_Human;
+                    
+                    case FactionObject.ObjectType.Barracks:
+                        return playerBarracks_Human;
 
                     case FactionObject.ObjectType.Worker:
                         return playerWorker_Human;
@@ -175,8 +185,11 @@ public class FactionSet : MonoBehaviour
                     case FactionObject.ObjectType.House:
                         return playerHouse_Undead;
 
-                    case FactionObject.ObjectType.Lumberyard:
-                        return playerLumberyard_Undead;
+                    case FactionObject.ObjectType.Storehouse:
+                        return playerStorehouse_Undead;
+
+                    case FactionObject.ObjectType.Barracks:
+                        return playerBarracks_Undead;
 
                     case FactionObject.ObjectType.Worker:
                         return playerWorker_Undead;
@@ -202,8 +215,11 @@ public class FactionSet : MonoBehaviour
                     case FactionObject.ObjectType.House:
                         return playerHouse_Elf;
 
-                    case FactionObject.ObjectType.Lumberyard:
-                        return playerLumberyard_Elf;
+                    case FactionObject.ObjectType.Storehouse:
+                        return playerStorehouse_Elf;
+
+                    case FactionObject.ObjectType.Barracks:
+                        return playerBarracks_Elf;
 
                     case FactionObject.ObjectType.Worker:
                         return playerWorker_Elf;

@@ -7,8 +7,10 @@ public class SelectionManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private Camera mainCamera;
 
-    private readonly List<ISelectable> selectedObjects =
-        new List<ISelectable>();
+    private readonly List<ISelectable> selectedObjects = new List<ISelectable>();
+    
+    public event System.Action OnSelectionChanged;
+    private bool buildingPlacementActive = false;
 
     private void Awake()
     {
@@ -25,6 +27,9 @@ public class SelectionManager : MonoBehaviour
 
     private void HandleSelectionInput()
     {
+        if (buildingPlacementActive)
+            return;
+
         if (!Input.GetMouseButtonDown(0))
             return;
 
@@ -85,33 +90,35 @@ public class SelectionManager : MonoBehaviour
         }
     }
 
-public void Select(ISelectable selectable)
-{
-    if (selectable == null)
-        return;
-
-    if (selectedObjects.Contains(selectable))
-        return;
-
-    // ==========================================
-    // DON'T MIX UNITS AND BUILDINGS
-    // ==========================================
-
-    if (selectedObjects.Count > 0)
+    public void Select(ISelectable selectable)
     {
-        SelectableType currentType =
-            selectedObjects[0].SelectableType;
+        if (selectable == null)
+            return;
 
-        if (currentType != selectable.SelectableType)
+        if (selectedObjects.Contains(selectable))
+            return;
+
+        // ==========================================
+        // DON'T MIX UNITS AND BUILDINGS
+        // ==========================================
+
+        if (selectedObjects.Count > 0)
         {
-            DeselectAll();
+            SelectableType currentType =
+                selectedObjects[0].SelectableType;
+
+            if (currentType != selectable.SelectableType)
+            {
+                DeselectAll();
+            }
         }
+
+        selectedObjects.Add(selectable);
+
+        selectable.Select();
+
+        OnSelectionChanged?.Invoke();
     }
-
-    selectedObjects.Add(selectable);
-
-    selectable.Select();
-}
 
     public void Deselect(ISelectable selectable)
     {
@@ -124,6 +131,8 @@ public void Select(ISelectable selectable)
         selectedObjects.Remove(selectable);
 
         selectable.Deselect();
+
+        OnSelectionChanged?.Invoke();
     }
 
     public void DeselectAll()
@@ -134,10 +143,22 @@ public void Select(ISelectable selectable)
         }
 
         selectedObjects.Clear();
+
+        OnSelectionChanged?.Invoke();
     }
 
     public IReadOnlyList<ISelectable> GetSelectedObjects()
     {
         return selectedObjects;
+    }
+
+    public void SetBuildingPlacementActive(bool active)
+    {
+        buildingPlacementActive = active;
+
+        if (active)
+        {
+            DeselectAll();
+        }
     }
 }

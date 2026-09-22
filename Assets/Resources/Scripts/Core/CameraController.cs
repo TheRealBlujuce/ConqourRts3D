@@ -13,6 +13,7 @@ public class CameraController : MonoBehaviour
     [Header("Initial Position")]
     public string playerBaseTag = "PlayerBase";
     public Vector3 initialOffset = Vector3.zero;
+    private GameObject playerBase;
 
     [Header("Bounds Settings")]
     [SerializeField] public BoxCollider cameraBounds;
@@ -33,7 +34,7 @@ public class CameraController : MonoBehaviour
 
         cam.orthographic = true;
 
-        GameObject playerBase =
+        playerBase =
             GameObject.FindGameObjectWithTag(playerBaseTag);
 
         if (playerBase != null)
@@ -62,10 +63,11 @@ public class CameraController : MonoBehaviour
         ClampToBounds();
     }
 
-    private void Update()
+   private void Update()
     {
         HandleMovement();
         HandleZoom();
+        HandleCenterCamera();
 
         ClampToBounds();
 
@@ -88,6 +90,36 @@ public class CameraController : MonoBehaviour
             targetOrthoSize,
             Time.deltaTime * zoomLerpFactor
         );
+    }
+
+    private void HandleCenterCamera()
+    {
+        if (!Input.GetKeyDown(KeyCode.Space))
+            return;
+
+        if (cameraBounds == null || playerBase == null)
+            return;
+
+        if (playerBase != null)
+        {
+            targetPosition =
+                playerBase.transform.position + initialOffset;
+
+            transform.position = new Vector3(
+                targetPosition.x,
+                transform.position.y,
+                targetPosition.z
+            );
+        }
+        else
+        {
+            Bounds bounds = cameraBounds.bounds;
+
+            targetPosition.x = bounds.center.x;
+            targetPosition.z = bounds.center.z;
+        }
+
+
     }
 
     private void HandleMovement()
@@ -133,47 +165,107 @@ public class CameraController : MonoBehaviour
 
     private void ClampToBounds()
     {
-        if (cameraBounds == null)
+        if (cameraBounds == null || cam == null)
             return;
 
         Bounds bounds = cameraBounds.bounds;
 
-        float tiltRad =
-            Mathf.Deg2Rad * transform.eulerAngles.x;
+        // Assume the playable ground is at the bottom/center Y
+        // of the camera bounds.
+        float groundY = bounds.center.y;
 
-        // Orthographic camera dimensions
-        float halfViewHeight = targetOrthoSize;
-        float halfViewWidth =
-            targetOrthoSize * cam.aspect;
-
-        // Camera footprint on the ground
-        float xExtent = halfViewWidth;
-
-        float zExtent =
-            Mathf.Abs(Mathf.Sin(tiltRad))
-            * halfViewHeight;
+        Plane groundPlane =
+            new Plane(Vector3.up, new Vector3(0f, groundY, 0f));
 
 
-        // Keep the visible camera area inside the cube.
+        // Find where all four camera corners hit the ground.
+        Vector3 bottomLeft =
+            GetViewportGroundPoint(
+                new Vector2(0f, 0f),
+                groundPlane
+            );
+
+        Vector3 bottomRight =
+            GetViewportGroundPoint(
+                new Vector2(1f, 0f),
+                groundPlane
+            );
+
+        Vector3 topLeft =
+            GetViewportGroundPoint(
+                new Vector2(0f, 1f),
+                groundPlane
+            );
+
+        Vector3 topRight =
+            GetViewportGroundPoint(
+                new Vector2(1f, 1f),
+                groundPlane
+            );
+
+
+        // Calculate how far the visible area extends
+        // from the camera's X/Z position.
+        float minVisibleX = Mathf.Min(
+            bottomLeft.x,
+            bottomRight.x,
+            topLeft.x,
+            topRight.x
+        );
+
+        float maxVisibleX = Mathf.Max(
+            bottomLeft.x,
+            bottomRight.x,
+            topLeft.x,
+            topRight.x
+        );
+
+        float minVisibleZ = Mathf.Min(
+            bottomLeft.z,
+            bottomRight.z,
+            topLeft.z,
+            topRight.z
+        );
+
+        float maxVisibleZ = Mathf.Max(
+            bottomLeft.z,
+            bottomRight.z,
+            topLeft.z,
+            topRight.z
+        );
+
+
+        float leftExtent =
+            transform.position.x - minVisibleX;
+
+        float rightExtent =
+            maxVisibleX - transform.position.x;
+
+        float southExtent =
+            transform.position.z - minVisibleZ;
+
+        float northExtent =
+            maxVisibleZ - transform.position.z;
+
+
+        // Calculate allowed camera position.
         float minX =
-            bounds.min.x + xExtent;
+            bounds.min.x + leftExtent;
 
         float maxX =
-            bounds.max.x - xExtent;
+            bounds.max.x - rightExtent;
 
         float minZ =
-            bounds.min.z + zExtent;
+            bounds.min.z + southExtent;
 
         float maxZ =
-            bounds.max.z - zExtent;
+            bounds.max.z - northExtent;
 
 
-        // Protect against the camera view becoming
-        // larger than the bounds.
+        // Clamp X
         if (minX > maxX)
         {
-            targetPosition.x =
-                bounds.center.x;
+            targetPosition.x = bounds.center.x;
         }
         else
         {
@@ -186,10 +278,10 @@ public class CameraController : MonoBehaviour
         }
 
 
+        // Clamp Z
         if (minZ > maxZ)
         {
-            targetPosition.z =
-                bounds.center.z;
+            targetPosition.z = bounds.center.z;
         }
         else
         {
@@ -200,6 +292,25 @@ public class CameraController : MonoBehaviour
                     maxZ
                 );
         }
+    }
+    
+    private Vector3 GetViewportGroundPoint(Vector2 viewportPoint, Plane groundPlane)
+    {
+        Ray ray =
+            cam.ViewportPointToRay(
+                new Vector3(
+                    viewportPoint.x,
+                    viewportPoint.y,
+                    0f
+                )
+            );
+
+        if (groundPlane.Raycast(ray, out float distance))
+        {
+            return ray.GetPoint(distance);
+        }
+
+        return transform.position;
     }
 
     public void SetCameraBounds(

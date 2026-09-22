@@ -14,13 +14,10 @@ public class MapGenerator : MonoBehaviour
     public int startingWorkerCount = 8;
 
     [Header("Prefabs")]
-    public GameObject basePrefab;
-    public GameObject workerPrefab;
+    private GameObject basePrefab;
+    private GameObject workerPrefab;
     public GameObject treePrefab;
     public GameObject goldPrefab;
-    public GameObject berryBushPrefab;
-    public GameObject goldClusterPrefab;
-    public GameObject berrybushClusterPrefab;
 
     [Header("Resource Counts")]
     public int totalGold = 20;
@@ -40,6 +37,7 @@ public class MapGenerator : MonoBehaviour
 
     [Header("References")]
     public Terrain terrain;
+    private GameManager gameManager;
 
     private Vector3 basePosition;
     private Vector3 terrainSize;
@@ -52,6 +50,8 @@ public class MapGenerator : MonoBehaviour
 
     public void GenerateMap()
     {
+        gameManager = GameManager.Instance;
+
         // Get terrain details and then generate the map
         if (terrain == null)
         {
@@ -73,7 +73,9 @@ public class MapGenerator : MonoBehaviour
                 Debug.LogError("GameManager instance not found. NavMesh will not be updated.");
             }
         }
-
+        
+        GetFactionPrefabs();
+        
         // 1. Spawn the base in the CENTER of the map
         SpawnBase();
 
@@ -81,12 +83,10 @@ public class MapGenerator : MonoBehaviour
         SpawnWorkers();
 
         // 3. Spawn starting resources around the base
-        SpawnResourcesAroundBase(goldClusterPrefab, startingGoldNearBase);
-        SpawnResourcesAroundBase(berrybushClusterPrefab, startingBerriesNearBase);
+        SpawnResourcesAroundBase(goldPrefab, startingGoldNearBase);
 
         // 4. Spawn extra random resources
-        SpawnRandomResources(goldClusterPrefab, totalGold);
-        SpawnRandomResources(berrybushClusterPrefab, totalBerries);
+        SpawnRandomResources(goldPrefab, totalGold);
 
         if (navUpdater != null)
         {
@@ -96,6 +96,7 @@ public class MapGenerator : MonoBehaviour
 
     private void SpawnBase()
     {
+        
         // Calculate the exact center of the terrain.
         Vector3 centerPosition = terrainPosition + new Vector3(
             terrainSize.x * 0.5f,
@@ -117,6 +118,91 @@ public class MapGenerator : MonoBehaviour
         );
 
         playerBase.layer = LayerMask.NameToLayer("Building");
+    }
+
+    private void SpawnWorkers()
+    {
+        
+        float spacing = 2f;
+        Vector3 rowDirection = Vector3.right;
+
+        Vector3 startPos =
+            basePosition -
+            (Vector3.forward * 16f) -
+            (rowDirection *
+             ((startingWorkerCount - 1) * spacing / 2));
+
+        for (int i = 0; i < startingWorkerCount; i++)
+        {
+            Vector3 pos =
+                startPos +
+                (rowDirection * (i * spacing));
+
+            pos.y =
+                terrain.SampleHeight(pos) +
+                terrainPosition.y;
+
+            GameObject worker = Instantiate(
+                workerPrefab,
+                pos,
+                Quaternion.identity
+            );
+
+            worker.layer = LayerMask.NameToLayer("Player");
+
+            worker.GetComponent<UnitStats>().isPlayerUnit = true;
+        }
+    }
+
+    private void GetFactionPrefabs()
+    {
+        Race currentPlayerRace = gameManager.playerRace;
+
+        var factionSet = gameManager.GetFactionSet();
+
+        if (factionSet == null)
+        {
+            Debug.LogError(
+                $"GameManager returned no FactionSet for {currentPlayerRace}!"
+            );
+
+            return;
+        }
+
+        switch (currentPlayerRace)
+        {
+            case Race.Human:
+                basePrefab = factionSet.playerBase_Human;
+                workerPrefab = factionSet.playerWorker_Human;
+                break;
+
+            case Race.Orc:
+                basePrefab = factionSet.playerBase_Orc;
+                workerPrefab = factionSet.playerWorker_Orc;
+                break;
+
+            case Race.Elf:
+                basePrefab = factionSet.playerBase_Elf;
+                workerPrefab = factionSet.playerWorker_Elf;
+                break;
+
+            case Race.Undead:
+                basePrefab = factionSet.playerBase_Undead;
+                workerPrefab = factionSet.playerWorker_Undead;
+                break;
+
+            default:
+                Debug.LogError(
+                    $"Unsupported player race: {currentPlayerRace}"
+                );
+                break;
+        }
+
+        Debug.Log(
+            $"Map faction: {currentPlayerRace} | " +
+            $"Base: {(basePrefab != null ? basePrefab.name : "NULL")} | " +
+            $"Worker: {(workerPrefab != null ? workerPrefab.name : "NULL")}"
+        );
     }
 
  	private void SpawnResourcesAroundBase(GameObject prefab, int count)
@@ -306,39 +392,6 @@ public class MapGenerator : MonoBehaviour
 
                 resource.layer = LayerMask.NameToLayer("Resource");
             }
-        }
-    }
-
-    private void SpawnWorkers()
-    {
-        float spacing = 2f;
-        Vector3 rowDirection = Vector3.right;
-
-        Vector3 startPos =
-            basePosition -
-            (Vector3.forward * 16f) -
-            (rowDirection *
-             ((startingWorkerCount - 1) * spacing / 2));
-
-        for (int i = 0; i < startingWorkerCount; i++)
-        {
-            Vector3 pos =
-                startPos +
-                (rowDirection * (i * spacing));
-
-            pos.y =
-                terrain.SampleHeight(pos) +
-                terrainPosition.y;
-
-            GameObject worker = Instantiate(
-                workerPrefab,
-                pos,
-                Quaternion.identity
-            );
-
-            worker.layer = LayerMask.NameToLayer("Player");
-
-            worker.GetComponent<UnitStats>().isPlayerUnit = true;
         }
     }
 

@@ -42,7 +42,7 @@ public class ThreatManager : MonoBehaviour
 
     private void Update()
     {
-        threatBar.fillAmount = Mathf.Lerp(threatBar.fillAmount, (float)threat / maxThreat, 0.25f * Time.deltaTime);
+        threatBar.fillAmount = Mathf.Lerp(threatBar.fillAmount, (float)threat / maxThreat, 2f * Time.deltaTime);
     }
 
 }

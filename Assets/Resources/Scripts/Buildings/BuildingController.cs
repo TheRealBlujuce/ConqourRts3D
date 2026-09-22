@@ -1,4 +1,4 @@
-using Unity.VisualScripting;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,6 +20,9 @@ public class BuildingController : MonoBehaviour, ISelectable
 
     [Header("References")]
     private BuildingStats buildingStats;
+
+    [Header("Buttons")]
+    public List<UnitButton.UnitButtonType> unitButtons;
 
     private void Start()
     {
@@ -76,7 +79,7 @@ public class BuildingController : MonoBehaviour, ISelectable
 
     private void UpdateHealthBar()
     {
-        if (healthBar != null)
+        if (healthBar != null && buildingStats != null)
         {
             healthBar.fillAmount = buildingStats.currentHealth / buildingStats.maxHealth;
         }
@@ -98,6 +101,10 @@ public class BuildingController : MonoBehaviour, ISelectable
             targetAlpha = hoverAlpha;
         else
             targetAlpha = 0f;
+
+        // hide healthbar unless selected
+        if (isSelected){healthBar.enabled = true;}
+        else {healthBar.enabled = false;}
 
         // Smoothly interpolate alpha
         Color currentColor = selectionRenderer.color;

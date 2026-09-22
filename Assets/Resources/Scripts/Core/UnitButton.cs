@@ -3,19 +3,37 @@ using UnityEngine.UI;
 
 public class UnitButton : MonoBehaviour
 {
-    public UnitProductionManager spawner; // The building that makes units
-    public int unitIndex; // Which unit in the spawner's availableUnits list
-    private Button button;
+    public enum UnitButtonType
+    {
+        Worker,
+        BasicMelee,
+        BasicRanged,
+        BasicSupport,
+        Hero
+    }
 
+    [Header("Button Identity")]
+    public UnitButtonType unitType;
+
+    [Header("Production")]
+    public UnitProductionManager spawner;
+    public int unitIndex;
+
+    private Button button;
     private ResourceManager resourceManager;
     private PopulationManager populationManager;
 
-    void Start()
+
+    private void Awake()
     {
         button = GetComponent<Button>();
+    }
+
+    private void Start()
+    {
         resourceManager = ResourceManager.Instance;
+
         populationManager = FindFirstObjectByType<PopulationManager>();
-		spawner = FindFirstObjectByType<UnitProductionManager>();
 
         if (button != null)
         {
@@ -23,32 +41,45 @@ public class UnitButton : MonoBehaviour
         }
     }
 
-    void Update()
+    private void Update()
     {
-        if (spawner == null || resourceManager == null || populationManager == null) 
-        { 
-            spawner = FindFirstObjectByType<UnitProductionManager>();
+        if (button == null)
+            return;
 
-            if (spawner == null) return;
+        if (spawner == null ||resourceManager == null ||populationManager == null)
+        {
+            button.interactable = false;
+            return;
         }
 
+        if (unitIndex < 0 ||unitIndex >= spawner.availableUnits.Count)
+        {
+            button.interactable = false;
+            return;
+        }
 
-        UnitProductionManager.UnitData unit = spawner.availableUnits[unitIndex];
+        UnitProductionManager.UnitData unit =spawner.availableUnits[unitIndex];
 
-        bool hasResources = resourceManager.HasResources(unit.goldCost, unit.lumberCost, unit.foodCost);
+        bool hasResources = resourceManager.HasResources(unit.goldCost,unit.lumberCost,unit.foodCost);
+
         bool hasPopulation = populationManager.currentPopulation + unit.populationCost <= populationManager.maxPopulation;
+
         bool queueNotFull = spawner.QueueCount < spawner.maxQueueSize;
 
-        // Enable button only if player can actually queue this unit
         button.interactable = hasResources && hasPopulation && queueNotFull;
     }
 
     private void OnButtonClick()
     {
-        if (spawner != null)
-        {
-            spawner.QueueUnit(unitIndex);
-            
-        }
+        if (spawner == null)
+            return;
+
+        spawner.QueueUnit(unitIndex);
+    }
+
+    public void SetSpawner(UnitProductionManager newSpawner, int newUnitIndex)
+    {
+        spawner = newSpawner;
+        unitIndex = newUnitIndex;
     }
 }

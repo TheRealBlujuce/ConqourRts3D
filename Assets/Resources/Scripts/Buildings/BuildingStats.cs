@@ -9,7 +9,6 @@ public class BuildingStats : MonoBehaviour
     public float armor = 10f;
 	public int populationProvided = 16;
 	public bool providesPopulation;
-	public float townRadius = 64f;
     public float noResourceRadius = 20f;
     public float resourceRadius = 40f;
 

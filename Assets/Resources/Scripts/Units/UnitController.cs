@@ -14,8 +14,10 @@ public class UnitController : MonoBehaviour, ISelectable
 
     [SerializeField] private UnitState currentState = UnitState.Idle;
 
+    // selection of units
     [Header("Selection")]
     public GameObject selectionIndicator;
+    public GameObject healthBar;
     public float fadeSpeed = 3f;
     public float hoverAlpha = 0.3f;
     private SpriteRenderer selectionRenderer;
@@ -25,6 +27,7 @@ public class UnitController : MonoBehaviour, ISelectable
     public bool IsSelected => isSelected;
     public SelectableType SelectableType => SelectableType.Unit;
 
+    // unit settings
     [Header("Unit Settings")]
     public float rotationAmount = 0.5f;
 
@@ -98,6 +101,11 @@ public class UnitController : MonoBehaviour, ISelectable
             targetAlpha = hoverAlpha;
         else
             targetAlpha = 0f;
+
+        // hide healthbar unless selected
+        if (isSelected){healthBar.SetActive(true);}
+        else {healthBar.SetActive(false);}
+
 
         // Smoothly interpolate alpha
         Color currentColor = selectionRenderer.color;

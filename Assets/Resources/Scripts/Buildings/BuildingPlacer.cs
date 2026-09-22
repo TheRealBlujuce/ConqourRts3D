@@ -2,27 +2,60 @@ using UnityEngine;
 
 public class BuildingPlacer : MonoBehaviour
 {
+
+    [Header("Building Cost")]
+    public int goldCost;
+    public int lumberCost;
+    public int foodCost;
+
     [Header("Placement Settings")]
     public float gridSize = 1f;
+
+    [Tooltip("The fixed Y level used for all buildings.")]
+    public float groundY = 0f;
+
     public Material canPlaceMat;
     public Material cannotPlaceMat;
-    public LayerMask blockingLayers; // Units, buildings, resources
+
+    [Tooltip("Units, buildings, resources, trees, etc.")]
+    public LayerMask blockingLayers;
+
     public int threatAmount = 10;
-    
+
     [Header("References")]
     public GameObject buildingPrefab;
-    private Renderer placerRenderer;
+    private SelectionManager selectionManager;  
+    private ResourceManager resourceManager;
 
+    private Renderer placerRenderer;
     private BuildingStats playerBase;
+
     private bool canPlaceHere = false;
+
+    private Camera mainCamera;
 
     private void Start()
     {
+        mainCamera = Camera.main;
+
         placerRenderer = GetComponentInChildren<Renderer>();
 
-        // Find the player's base (the one with isPlayerBase = true)
-        BuildingStats[] allBases = FindObjectsByType<BuildingStats>(FindObjectsSortMode.None);
-        foreach (var b in allBases)
+        // Deselect everything when building placement begins.
+        selectionManager = FindFirstObjectByType<SelectionManager>();
+
+        // Get the resource manager
+        resourceManager = FindFirstObjectByType<ResourceManager>();
+
+        if (selectionManager != null)
+        {
+            selectionManager.SetBuildingPlacementActive(true);
+        }
+
+        // Find the player's base.
+        BuildingStats[] allBases =
+            FindObjectsByType<BuildingStats>(FindObjectsSortMode.None);
+
+        foreach (BuildingStats b in allBases)
         {
             if (b.isPlayerBase)
             {
@@ -33,17 +66,24 @@ public class BuildingPlacer : MonoBehaviour
 
         if (playerBase == null)
         {
-            Debug.LogError("No player base found with isPlayerBase = true!");
+            Debug.LogError(
+                "No player base found with isPlayerBase = true!"
+            );
         }
 
-		transform.localRotation = Quaternion.Euler(0f, 128f, 0f);
+        transform.localRotation = Quaternion.Euler(0f, 128f, 0f);
     }
 
     private void Update()
     {
         FollowMouse();
-
         CheckPlacementValidity();
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            CancelPlacement();
+            return;
+        }
 
         if (canPlaceHere && Input.GetMouseButtonDown(0))
         {
@@ -51,72 +91,171 @@ public class BuildingPlacer : MonoBehaviour
         }
     }
 
+    private void CancelPlacement()
+    {
+        Destroy(gameObject);
+    }
+
+    // ==========================================
+    // FOLLOW MOUSE
+    // ==========================================
+
     private void FollowMouse()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit hit, 200f, ~0))
-        {
-            Vector3 snapPos = new Vector3(
-                Mathf.Round(hit.point.x / gridSize) * gridSize,
-                hit.point.y,
-                Mathf.Round(hit.point.z / gridSize) * gridSize
-            );
-            transform.position = snapPos;
-        }
+        if (mainCamera == null)
+            return;
+
+        Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+
+        // Create an invisible horizontal plane at ground level.
+        Plane groundPlane = new Plane(
+            Vector3.up,
+            new Vector3(0f, groundY, 0f)
+        );
+
+        if (!groundPlane.Raycast(ray, out float distance))
+            return;
+
+        Vector3 hitPoint = ray.GetPoint(distance);
+
+        // Snap X and Z to grid.
+        float snappedX =
+            Mathf.Round(hitPoint.x / gridSize) * gridSize;
+
+        float snappedZ =
+            Mathf.Round(hitPoint.z / gridSize) * gridSize;
+
+        transform.position = new Vector3(
+            snappedX,
+            groundY,
+            snappedZ
+        );
     }
+
+    // ==========================================
+    // PLACEMENT VALIDITY
+    // ==========================================
 
     private void CheckPlacementValidity()
     {
-        if (playerBase == null) return;
-
-        // Check radius from player base
-        float dist = Vector3.Distance(transform.position, playerBase.transform.position);
-        if (dist > playerBase.townRadius)
+        if (playerBase == null)
         {
-            SetMaterial(false);
             canPlaceHere = false;
+            SetMaterial(false);
             return;
         }
 
-        // Check for collisions with units, buildings, resources
+        // ------------------------------------------
+        // Town radius
+        // ------------------------------------------
+
+        Vector3 placerPosition = transform.position;
+        Vector3 basePosition = playerBase.transform.position;
+
+        // Ignore Y when checking town radius.
+        placerPosition.y = 0f;
+        basePosition.y = 0f;
+
+        // ------------------------------------------
+        // Collision check
+        // ------------------------------------------
+
         Collider[] hits = Physics.OverlapBox(
             transform.position,
             transform.localScale / 2f,
-            Quaternion.identity,
+            transform.rotation,
             blockingLayers
         );
 
         if (hits.Length > 0)
         {
-            SetMaterial(false);
             canPlaceHere = false;
+            SetMaterial(false);
+            return;
         }
-        else
-        {
-            SetMaterial(true);
-            canPlaceHere = true;
-        }
+
+        canPlaceHere = true;
+        SetMaterial(true);
     }
+
+    // ==========================================
+    // MATERIAL
+    // ==========================================
 
     private void SetMaterial(bool canPlace)
     {
-        if (placerRenderer != null)
-        {
-            placerRenderer.material = canPlace ? canPlaceMat : cannotPlaceMat;
-        }
+        if (placerRenderer == null)
+            return;
+
+        placerRenderer.material =
+            canPlace ? canPlaceMat : cannotPlaceMat;
     }
+
+    // ==========================================
+    // PLACE BUILDING
+    // ==========================================
 
     private void PlaceBuilding()
     {
-        Instantiate(buildingPrefab, transform.position, transform.localRotation);
+        if (ResourceManager.Instance == null)
+        {
+            Debug.LogError("No ResourceManager found!");
+            return;
+        }
+
+        // Make sure the player can still afford the building.
+        if (!ResourceManager.Instance.HasResources(
+            goldCost,
+            lumberCost,
+            foodCost))
+        {
+            Debug.Log("Not enough resources to build!");
+            return;
+        }
+
+        // Spend resources only when construction is confirmed.
+        ResourceManager.Instance.SpendResources(
+            goldCost,
+            lumberCost,
+            foodCost
+        );
+
+        Instantiate(
+            buildingPrefab,
+            transform.position,
+            transform.rotation
+        );
+
         ThreatManager.Instance.AddThreat(threatAmount);
-        Destroy(gameObject); // Destroy placer after placement
+
+        Destroy(gameObject);
     }
+
+    private void OnDestroy()
+    {
+        if (selectionManager != null)
+        {
+            selectionManager.SetBuildingPlacementActive(false);
+        }
+    }
+
+    // ==========================================
+    // GIZMOS
+    // ==========================================
 
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.green;
-        Gizmos.DrawWireCube(transform.position, transform.localScale);
+
+        Gizmos.matrix = Matrix4x4.TRS(
+            transform.position,
+            transform.rotation,
+            Vector3.one
+        );
+
+        Gizmos.DrawWireCube(
+            Vector3.zero,
+            transform.localScale
+        );
     }
 }
-
