@@ -16,7 +16,8 @@ public class CameraController : MonoBehaviour
     private GameObject playerBase;
 
     [Header("Bounds Settings")]
-    [SerializeField] public BoxCollider cameraBounds;
+    [SerializeField] private Terrain terrain;
+    private Bounds terrainBounds;
 
     private Vector3 targetPosition;
     private float targetOrthoSize;
@@ -34,19 +35,29 @@ public class CameraController : MonoBehaviour
 
         cam.orthographic = true;
 
-        playerBase =
-            GameObject.FindGameObjectWithTag(playerBaseTag);
+        if (terrain == null)
+        {
+            terrain = Terrain.activeTerrain;
+        }
+
+        if (terrain == null)
+        {
+            Debug.LogError(
+                "CameraController could not find a Terrain."
+            );
+
+            return;
+        }
+
+        terrainBounds = GetTerrainBounds();
+
+        playerBase = GameObject.FindGameObjectWithTag(playerBaseTag);
 
         if (playerBase != null)
         {
-            targetPosition =
-                playerBase.transform.position + initialOffset;
+            targetPosition = playerBase.transform.position + initialOffset;
 
-            transform.position = new Vector3(
-                targetPosition.x,
-                transform.position.y,
-                targetPosition.z
-            );
+            transform.position = new Vector3(targetPosition.x, transform.position.y, targetPosition.z);
         }
         else
         {
@@ -97,29 +108,18 @@ public class CameraController : MonoBehaviour
         if (!Input.GetKeyDown(KeyCode.Space))
             return;
 
-        if (cameraBounds == null || playerBase == null)
-            return;
-
+        // Center on player base if one exists.
         if (playerBase != null)
         {
-            targetPosition =
-                playerBase.transform.position + initialOffset;
+            targetPosition = playerBase.transform.position + initialOffset;
 
-            transform.position = new Vector3(
-                targetPosition.x,
-                transform.position.y,
-                targetPosition.z
-            );
-        }
-        else
-        {
-            Bounds bounds = cameraBounds.bounds;
-
-            targetPosition.x = bounds.center.x;
-            targetPosition.z = bounds.center.z;
+            return;
         }
 
+        // Otherwise center on the terrain.
+        targetPosition.x = terrainBounds.center.x;
 
+        targetPosition.z = terrainBounds.center.z;
     }
 
     private void HandleMovement()
@@ -165,101 +165,55 @@ public class CameraController : MonoBehaviour
 
     private void ClampToBounds()
     {
-        if (cameraBounds == null || cam == null)
+        if (terrain == null || cam == null)
             return;
 
-        Bounds bounds = cameraBounds.bounds;
+        Bounds bounds = terrainBounds;
 
         // Assume the playable ground is at the bottom/center Y
         // of the camera bounds.
-        float groundY = bounds.center.y;
+        float groundY = terrain.transform.position.y;
 
-        Plane groundPlane =
-            new Plane(Vector3.up, new Vector3(0f, groundY, 0f));
+        Plane groundPlane = new Plane(Vector3.up, new Vector3(0f, groundY, 0f));
 
 
         // Find where all four camera corners hit the ground.
-        Vector3 bottomLeft =
-            GetViewportGroundPoint(
-                new Vector2(0f, 0f),
-                groundPlane
-            );
+        Vector3 bottomLeft = GetViewportGroundPoint(new Vector2(0f, 0f), groundPlane);
 
-        Vector3 bottomRight =
-            GetViewportGroundPoint(
-                new Vector2(1f, 0f),
-                groundPlane
-            );
+        Vector3 bottomRight = GetViewportGroundPoint(new Vector2(1f, 0f), groundPlane);
 
-        Vector3 topLeft =
-            GetViewportGroundPoint(
-                new Vector2(0f, 1f),
-                groundPlane
-            );
+        Vector3 topLeft = GetViewportGroundPoint(new Vector2(0f, 1f), groundPlane);
 
-        Vector3 topRight =
-            GetViewportGroundPoint(
-                new Vector2(1f, 1f),
-                groundPlane
-            );
+        Vector3 topRight = GetViewportGroundPoint(new Vector2(1f, 1f), groundPlane);
 
 
         // Calculate how far the visible area extends
         // from the camera's X/Z position.
-        float minVisibleX = Mathf.Min(
-            bottomLeft.x,
-            bottomRight.x,
-            topLeft.x,
-            topRight.x
-        );
+        float minVisibleX = Mathf.Min(bottomLeft.x, bottomRight.x, topLeft.x, topRight.x);
 
-        float maxVisibleX = Mathf.Max(
-            bottomLeft.x,
-            bottomRight.x,
-            topLeft.x,
-            topRight.x
-        );
+        float maxVisibleX = Mathf.Max(bottomLeft.x, bottomRight.x, topLeft.x, topRight.x);
 
-        float minVisibleZ = Mathf.Min(
-            bottomLeft.z,
-            bottomRight.z,
-            topLeft.z,
-            topRight.z
-        );
+        float minVisibleZ = Mathf.Min(bottomLeft.z, bottomRight.z, topLeft.z, topRight.z);
 
-        float maxVisibleZ = Mathf.Max(
-            bottomLeft.z,
-            bottomRight.z,
-            topLeft.z,
-            topRight.z
-        );
+        float maxVisibleZ = Mathf.Max(bottomLeft.z, bottomRight.z, topLeft.z, topRight.z);
 
 
-        float leftExtent =
-            transform.position.x - minVisibleX;
+        float leftExtent = transform.position.x - minVisibleX;
 
-        float rightExtent =
-            maxVisibleX - transform.position.x;
+        float rightExtent = maxVisibleX - transform.position.x;
 
-        float southExtent =
-            transform.position.z - minVisibleZ;
+        float southExtent = transform.position.z - minVisibleZ;
 
-        float northExtent =
-            maxVisibleZ - transform.position.z;
-
+        float northExtent = maxVisibleZ - transform.position.z;
 
         // Calculate allowed camera position.
-        float minX =
-            bounds.min.x + leftExtent;
+        float minX = bounds.min.x + leftExtent;
 
-        float maxX =
-            bounds.max.x - rightExtent;
+        float maxX = bounds.max.x - rightExtent;
 
-        float minZ =
-            bounds.min.z + southExtent;
+        float minZ = bounds.min.z + southExtent;
 
-        float maxZ =
-            bounds.max.z - northExtent;
+        float maxZ = bounds.max.z - northExtent;
 
 
         // Clamp X
@@ -269,12 +223,7 @@ public class CameraController : MonoBehaviour
         }
         else
         {
-            targetPosition.x =
-                Mathf.Clamp(
-                    targetPosition.x,
-                    minX,
-                    maxX
-                );
+            targetPosition.x = Mathf.Clamp(targetPosition.x, minX, maxX);
         }
 
 
@@ -285,12 +234,7 @@ public class CameraController : MonoBehaviour
         }
         else
         {
-            targetPosition.z =
-                Mathf.Clamp(
-                    targetPosition.z,
-                    minZ,
-                    maxZ
-                );
+            targetPosition.z = Mathf.Clamp( targetPosition.z, minZ, maxZ);
         }
     }
     
@@ -312,13 +256,47 @@ public class CameraController : MonoBehaviour
 
         return transform.position;
     }
-
-    public void SetCameraBounds(
-        BoxCollider newBounds
-    )
+    private Bounds GetTerrainBounds()
     {
-        cameraBounds = newBounds;
+        Vector3 terrainPosition =
+            terrain.transform.position;
+
+        Vector3 terrainSize =
+            terrain.terrainData.size;
+
+        Vector3 center =
+            terrainPosition +
+            terrainSize * 0.5f;
+
+        return new Bounds(
+            center,
+            terrainSize
+        );
+    }
+
+    public void SetTerrain(Terrain newTerrain)
+    {
+        terrain = newTerrain;
+
+        if (terrain != null)
+        {
+            terrainBounds = GetTerrainBounds();
+            ClampToBounds();
+        }
+    }
+
+    public void TeleportToPosition(Vector3 worldPosition)
+    {
+        targetPosition.x = worldPosition.x;
+        targetPosition.z = worldPosition.z;
 
         ClampToBounds();
+
+        transform.position = new Vector3(
+            targetPosition.x,
+            transform.position.y,
+            targetPosition.z
+        );
     }
+    
 }

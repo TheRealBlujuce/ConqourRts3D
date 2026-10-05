@@ -25,7 +25,6 @@ public class BuildingPlacer : MonoBehaviour
     [Header("References")]
     public GameObject buildingPrefab;
     private SelectionManager selectionManager;  
-    private ResourceManager resourceManager;
 
     private Renderer placerRenderer;
     private BuildingStats playerBase;
@@ -42,9 +41,6 @@ public class BuildingPlacer : MonoBehaviour
 
         // Deselect everything when building placement begins.
         selectionManager = FindFirstObjectByType<SelectionManager>();
-
-        // Get the resource manager
-        resourceManager = FindFirstObjectByType<ResourceManager>();
 
         if (selectionManager != null)
         {
@@ -220,11 +216,25 @@ public class BuildingPlacer : MonoBehaviour
             foodCost
         );
 
-        Instantiate(
+        GameObject newBuilding = Instantiate(
             buildingPrefab,
             transform.position,
             transform.rotation
         );
+
+        if (newBuilding.GetComponent<BuildingStats>().buildingType == BuildingType.Tower)
+        {
+            Tower tower = newBuilding.GetComponent<Tower>();
+            tower.SetFaction(GameManager.Instance.playerRace);
+            TowerManager.Instance?.RegisterTower();
+        }
+
+        InstancedTreeClearer treeClearer = newBuilding.GetComponent<InstancedTreeClearer>();
+
+        if (treeClearer != null)
+        {
+            treeClearer.ClearTrees();
+        }
 
         ThreatManager.Instance.AddThreat(threatAmount);
 

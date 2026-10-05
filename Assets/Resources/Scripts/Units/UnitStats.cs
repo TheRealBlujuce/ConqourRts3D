@@ -3,8 +3,10 @@ using UnityEngine;
 public enum UnitType
 {
     Worker,
-    Archer,
-    Warrior
+    BasicMelee,
+    BasicRanged,
+    BasicSupport,
+    Hero
 }
 
 public class UnitStats : MonoBehaviour, IDamageable
@@ -28,8 +30,6 @@ public class UnitStats : MonoBehaviour, IDamageable
     [Header("Team")]
     public CombatTeam combatTeam = CombatTeam.Player;
 
-
-
     // IDamageable
     public int CurrentHealth => health;
     public int MaxHealth => maxHealth;
@@ -37,6 +37,19 @@ public class UnitStats : MonoBehaviour, IDamageable
     public bool IsDead => health <= 0;
     public CombatTeam Team => combatTeam;
 
+    private void Start()
+    {
+        MinimapManager.Instance?.Register(
+            transform,
+            combatTeam,
+            false
+        );
+    }
+
+    private void OnDestroy()
+    {
+        MinimapManager.Instance?.Unregister(transform);
+    }
 
     public void TakeDamage(int incomingDamage)
     {
@@ -52,11 +65,11 @@ public class UnitStats : MonoBehaviour, IDamageable
         health -= finalDamage;
         health = Mathf.Max(health, 0);
 
-        Debug.Log(
-            $"{gameObject.name} took {finalDamage} damage " +
-            $"({incomingDamage} incoming, {armor} armor). " +
-            $"Health: {health}/{maxHealth}"
-        );
+        // Debug.Log(
+        //     $"{gameObject.name} took {finalDamage} damage " +
+        //     $"({incomingDamage} incoming, {armor} armor). " +
+        //     $"Health: {health}/{maxHealth}"
+        // );
 
         if (health <= 0)
         {
@@ -64,9 +77,20 @@ public class UnitStats : MonoBehaviour, IDamageable
         }
     }
 
-
     private void Die()
     {
+        GameManager.Instance.GetPopulationManager().RemovePopulation(populationCost);
+        GameManager.Instance.GetThreatManager().RemoveThreat(threatAmount);
         Destroy(gameObject);
+    }
+
+    public void NotifyAttacker(GameObject attacker)
+    {
+        EnemyUnitController enemyController = GetComponent<EnemyUnitController>();
+
+        if (enemyController != null)
+        {
+            enemyController.NotifyAttacked(attacker);
+        }
     }
 }

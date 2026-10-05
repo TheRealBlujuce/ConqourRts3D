@@ -65,6 +65,13 @@ public class ResourceNode : MonoBehaviour
             selection.color = selectedColor;
             selectionIndicator.SetActive(false);
         }
+
+        InstancedTreeClearer treeClearer = GetComponent<InstancedTreeClearer>();
+
+        if (treeClearer != null)
+        {
+            treeClearer.ClearTrees();
+        }
     }
 
     private void Update()

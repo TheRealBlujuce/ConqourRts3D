@@ -1,8 +1,8 @@
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 
-public enum UnitState { Idle, Moving, Attacking, Gathering, Hunting }
+public enum UnitState { Idle, Moving, Attacking, Gathering }
 
 [RequireComponent(typeof(NavMeshAgent), typeof(UnitStats))]
 public class UnitController : MonoBehaviour, ISelectable
@@ -17,7 +17,8 @@ public class UnitController : MonoBehaviour, ISelectable
     // selection of units
     [Header("Selection")]
     public GameObject selectionIndicator;
-    public GameObject healthBar;
+    public Image healthBar;
+    public Image healthBarBack;
     public float fadeSpeed = 3f;
     public float hoverAlpha = 0.3f;
     private SpriteRenderer selectionRenderer;
@@ -30,6 +31,10 @@ public class UnitController : MonoBehaviour, ISelectable
     // unit settings
     [Header("Unit Settings")]
     public float rotationAmount = 0.5f;
+
+    [Header("Movement")]
+    [SerializeField] private float destinationTolerance = 0.15f;
+    [SerializeField] private float minimumMoveDistance = 0.1f;
 
     [Header("Gathering Settings")]
     public float minDistanceToResourceNode = 1.5f;
@@ -46,7 +51,8 @@ public class UnitController : MonoBehaviour, ISelectable
     [SerializeField] private bool isAttackMoving = false;
     [SerializeField] private float enemySearchRadius = 8f;
     [SerializeField] private float enemySearchInterval = 0.25f;
-
+    [SerializeField, Range(0f, 180f)] private float enemySearchAngle = 120f;
+    private readonly Collider[] enemySearchResults = new Collider[32];
     private float enemySearchTimer = 0f;
     private Vector3 attackMoveDestination;
 
@@ -60,6 +66,9 @@ public class UnitController : MonoBehaviour, ISelectable
         unitGatherer = GetComponent<UnitGatherer>();
         unitMilitary = GetComponent<UnitMilitary>();
         mainCamera = Camera.main;
+
+        agent.obstacleAvoidanceType =
+            ObstacleAvoidanceType.MedQualityObstacleAvoidance;
 
         if (selectionIndicator != null)
         {
@@ -85,14 +94,20 @@ public class UnitController : MonoBehaviour, ISelectable
         HandleMovement();
         HandleAttackMove();
 
+        CheckMovementArrival();
+
         RotateTowardsMovementDirection();
         UpdateState();
+
+        UpdateHealthBar();
         UpdateSelectionFade();
+
     }
 
     private void UpdateSelectionFade()
     {
-        if (selectionRenderer == null) return;
+        if (selectionRenderer == null)
+            return;
 
         // Determine target alpha
         if (isSelected)
@@ -102,20 +117,37 @@ public class UnitController : MonoBehaviour, ISelectable
         else
             targetAlpha = 0f;
 
-        // hide healthbar unless selected
-        if (isSelected){healthBar.SetActive(true);}
-        else {healthBar.SetActive(false);}
+        // ==========================================
+        // SELECTION INDICATOR FADE
+        // ==========================================
 
+        Color selectionColor = selectionRenderer.color;
 
-        // Smoothly interpolate alpha
-        Color currentColor = selectionRenderer.color;
-        float newAlpha = Mathf.Lerp(currentColor.a, targetAlpha, fadeSpeed * Time.deltaTime);
+        float newAlpha = Mathf.Lerp(selectionColor.a,targetAlpha,fadeSpeed * Time.deltaTime);
 
-        // Apply color
-        currentColor.a = newAlpha;
-        selectionRenderer.color = currentColor;
+        selectionColor.a = newAlpha;
+        selectionRenderer.color = selectionColor;
 
-        // Manage object active state
+        // ==========================================
+        // HEALTH BAR FADE
+        // ==========================================
+
+        if (healthBar != null && healthBarBack != null)
+        {
+            Color healthColor = healthBar.color;
+            Color backHealthColor = healthBarBack.color;
+
+            healthColor.a = newAlpha;
+            healthBar.color = healthColor;
+
+            backHealthColor.a = newAlpha;
+            healthBarBack.color = backHealthColor;
+        }
+
+        // ==========================================
+        // SELECTION INDICATOR VISIBILITY
+        // ==========================================
+
         if (newAlpha <= 0.01f)
         {
             if (selectionIndicator.activeSelf)
@@ -126,6 +158,14 @@ public class UnitController : MonoBehaviour, ISelectable
             if (!selectionIndicator.activeSelf)
                 selectionIndicator.SetActive(true);
         }
+    }
+
+    private void UpdateHealthBar()
+    {
+        if (healthBar == null || unitStats == null)
+            return;
+
+        healthBar.fillAmount = (float)unitStats.health / unitStats.maxHealth;
     }
 
     private void HandleMovement()
@@ -212,7 +252,7 @@ public class UnitController : MonoBehaviour, ISelectable
                         else
                         {
                             gatherer.StopGathering();
-                            agent.SetDestination(hit.point);
+                            MoveTo(hit.point);
                             SetState(UnitState.Moving);
                         }
                         return;
@@ -232,74 +272,169 @@ public class UnitController : MonoBehaviour, ISelectable
 
                     // Right-click ground
                     gatherer.StopGathering();
-                    agent.SetDestination(hit.point);
+                    MoveTo(hit.point);
                     SetState(UnitState.Moving);
                 }
 				else
 				{
-                    agent.SetDestination(hit.point);
+                    MoveTo(hit.point);
                     SetState(UnitState.Moving);
 				}
             }
         }
     }
 
+    #region Movement
+
+
+        public void MoveTo(Vector3 destination)
+        {
+            if (!canMove)
+                return;
+
+            // Make sure the requested position is actually on the NavMesh.
+            if (!NavMesh.SamplePosition(
+                destination,
+                out NavMeshHit hit,
+                1.5f,
+                NavMesh.AllAreas))
+            {
+                return;
+            }
+
+            float distanceSqr =
+                (transform.position - hit.position).sqrMagnitude;
+
+            if (distanceSqr <= minimumMoveDistance * minimumMoveDistance)
+            {
+                StopMoving();
+                return;
+            }
+
+            agent.isStopped = false;
+
+            // IMPORTANT:
+            // Tell the NavMeshAgent to move.
+            // Do NOT call MoveTo() again here.
+            agent.SetDestination(hit.position);
+
+            SetState(UnitState.Moving);
+        }
+
+        public void StopMoving()
+        {
+            if (agent.hasPath)
+            {
+                agent.ResetPath();
+            }
+
+            agent.isStopped = true;
+
+            if (currentState == UnitState.Moving)
+            {
+                SetState(UnitState.Idle);
+            }
+        }
+        private void CheckMovementArrival()
+        {
+            if (currentState != UnitState.Moving)
+                return;
+
+            // Gathering/combat systems control their own movement.
+            if (unitMilitary != null && unitMilitary.IsAttacking())
+                return;
+
+            if (isAttackMoving)
+                return;
+
+            if (HasReachedDestination())
+            {
+                StopMoving();
+            }
+        }
+        private bool HasReachedDestination()
+        {
+            if (agent.pathPending)
+                return false;
+
+            if (!agent.hasPath)
+                return true;
+
+            float arrivalDistance = Mathf.Max(agent.stoppingDistance, destinationTolerance);
+
+            if (agent.remainingDistance > arrivalDistance)
+                return false;
+
+            if (agent.velocity.sqrMagnitude > 0.05f)
+                return false;
+
+            return true;
+        }
+
+
+    #endregion
+
     #region Attack Movement
 
         private void HandleAttackMove()
         {
-            if (!isSelected || !canMove || unitMilitary == null)
+            if (!canMove || unitMilitary == null)
                 return;
 
-
             // ==========================================
-            // ENTER ATTACK MOVE TARGETING MODE
+            // PLAYER INPUT
+            // Only selected units can RECEIVE the command.
             // ==========================================
 
-            if (Input.GetKeyDown(KeyCode.R))
+            if (isSelected)
             {
-                // Don't trigger attack move when using Shift + R
-                if (!Input.GetKey(KeyCode.LeftShift) &&
-                    !Input.GetKey(KeyCode.RightShift))
+                if (Input.GetKeyDown(KeyCode.R))
                 {
-                    isAttackMoveTargeting = true;
-
-                    Debug.Log($"{gameObject.name}: Choose attack move destination.");
-                }
-            }
-
-
-            // ==========================================
-            // WAIT FOR RIGHT CLICK DESTINATION
-            // ==========================================
-
-            if (isAttackMoveTargeting)
-            {
-                if (Input.GetMouseButtonDown(1))
-                {
-                    Ray ray =
-                        mainCamera.ScreenPointToRay(Input.mousePosition);
-
-                    if (Physics.Raycast(ray, out RaycastHit hit))
+                    // Don't trigger attack move with Shift + R.
+                    if (!Input.GetKey(KeyCode.LeftShift) &&
+                        !Input.GetKey(KeyCode.RightShift))
                     {
-                        StartAttackMove(hit.point);
+                        isAttackMoveTargeting = true;
 
-                        isAttackMoveTargeting = false;
+                        // Debug.Log(
+                        //     $"{gameObject.name}: Choose attack move destination."
+                        // );
                     }
                 }
 
-                // Don't do normal attack-move processing yet.
-                return;
+                // ==========================================
+                // WAIT FOR RIGHT CLICK DESTINATION
+                // ==========================================
+
+                if (isAttackMoveTargeting)
+                {
+                    if (Input.GetMouseButtonDown(1))
+                    {
+                        Ray ray =
+                            mainCamera.ScreenPointToRay(Input.mousePosition);
+
+                        if (Physics.Raycast(ray, out RaycastHit hit))
+                        {
+                            StartAttackMove(hit.point);
+
+                            isAttackMoveTargeting = false;
+                        }
+                    }
+
+                    return;
+                }
             }
 
-
             // ==========================================
-            // NOT CURRENTLY ATTACK MOVING
+            // ATTACK MOVE AI
+            //
+            // IMPORTANT:
+            // Everything below here runs regardless of
+            // whether the unit is currently selected.
             // ==========================================
 
             if (!isAttackMoving)
                 return;
-
 
             // ==========================================
             // CURRENTLY FIGHTING
@@ -308,9 +443,8 @@ public class UnitController : MonoBehaviour, ISelectable
             if (unitMilitary.IsAttacking())
                 return;
 
-
             // ==========================================
-            // SEARCH FOR ENEMIES
+            // SEARCH FOR ENEMIES WHILE MOVING
             // ==========================================
 
             enemySearchTimer -= Time.deltaTime;
@@ -323,35 +457,36 @@ public class UnitController : MonoBehaviour, ISelectable
 
                 if (enemy != null)
                 {
+                    // We found an enemy while attack moving.
+                    // Stop the attack-move command permanently.
+                    isAttackMoving = false;
+
+                    // Abandon the original destination.
+                    if (agent.hasPath)
+                    {
+                        agent.ResetPath();
+                    }
+
+                    // Combat now owns the unit.
                     unitMilitary.StartAttacking(enemy);
+
+                    SetState(UnitState.Attacking);
 
                     return;
                 }
             }
 
-
-            // ==========================================
-            // RESUME ATTACK MOVE
-            // ==========================================
-
-            if (!agent.hasPath && !agent.pathPending)
-            {
-                agent.isStopped = false;
-                agent.SetDestination(attackMoveDestination);
-
-                SetState(UnitState.Moving);
-            }
-
-
             // ==========================================
             // DESTINATION REACHED
             // ==========================================
 
-            if (!agent.pathPending &&
-                agent.remainingDistance <= agent.stoppingDistance)
+            if (!agent.pathPending && agent.hasPath && agent.remainingDistance <= agent.stoppingDistance)
             {
-                isAttackMoving = false;
+                agent.ResetPath();
 
+                // DO NOT disable isAttackMoving.
+                // The unit should continue scanning for enemies
+                // after reaching the destination.
                 SetState(UnitState.Idle);
             }
         }
@@ -377,7 +512,7 @@ public class UnitController : MonoBehaviour, ISelectable
             enemySearchTimer = 0f;
 
             agent.isStopped = false;
-            agent.SetDestination(attackMoveDestination);
+            MoveTo(attackMoveDestination);
 
             SetState(UnitState.Moving);
         }
@@ -390,65 +525,63 @@ public class UnitController : MonoBehaviour, ISelectable
 
         private GameObject FindNearestEnemy()
         {
-            Collider[] hits = Physics.OverlapSphere(
-                transform.position,
-                enemySearchRadius
-            );
+            int hitCount = Physics.OverlapSphereNonAlloc(transform.position, enemySearchRadius, enemySearchResults);
 
             GameObject nearestEnemy = null;
             float nearestDistance = Mathf.Infinity;
 
-            foreach (Collider hit in hits)
+            Vector3 destinationDirection = attackMoveDestination - transform.position;
+            destinationDirection.y = 0f;
+
+            if (destinationDirection.sqrMagnitude > 0.01f)
+                destinationDirection.Normalize();
+
+            for (int i = 0; i < hitCount; i++)
             {
-                IDamageable damageable =
-                    hit.GetComponent<IDamageable>();
+                Collider hit = enemySearchResults[i];
+
+                if (hit == null)
+                    continue;
+
+                IDamageable damageable = hit.GetComponent<IDamageable>();
 
                 if (damageable == null)
-                {
-                    damageable =
-                        hit.GetComponentInParent<IDamageable>();
-                }
+                    damageable = hit.GetComponentInParent<IDamageable>();
 
                 if (damageable == null)
                     continue;
 
-
-                MonoBehaviour targetBehaviour =
-                    damageable as MonoBehaviour;
+                MonoBehaviour targetBehaviour = damageable as MonoBehaviour;
 
                 if (targetBehaviour == null)
                     continue;
 
+                GameObject targetObject = targetBehaviour.gameObject;
 
-                GameObject targetObject =
-                    targetBehaviour.gameObject;
-
-
-                // Don't detect ourselves
                 if (targetObject == gameObject)
                     continue;
 
-
-                // Ignore dead targets
                 if (damageable.IsDead)
                     continue;
 
-
-                // Ignore friendly units/buildings
                 if (damageable.Team == unitStats.Team)
                     continue;
 
-
-                // Ignore neutral objects
                 if (damageable.Team == CombatTeam.Neutral)
                     continue;
 
+                Vector3 enemyDirection = targetObject.transform.position - transform.position;
+                enemyDirection.y = 0f;
 
-                float distance = Vector3.Distance(
-                    transform.position,
-                    targetObject.transform.position
-                );
+                if (enemyDirection.sqrMagnitude <= 0.01f)
+                    continue;
 
+                float angle = Vector3.Angle(destinationDirection, enemyDirection);
+
+                if (angle > enemySearchAngle * 0.5f)
+                    continue;
+
+                float distance = enemyDirection.sqrMagnitude;
 
                 if (distance < nearestDistance)
                 {
@@ -457,12 +590,10 @@ public class UnitController : MonoBehaviour, ISelectable
                 }
             }
 
-
             return nearestEnemy;
         }
 
     #endregion
-
 
     private void RotateTowardsMovementDirection()
     {
@@ -477,7 +608,7 @@ public class UnitController : MonoBehaviour, ISelectable
                 if (directionToNode.sqrMagnitude > 0.1f)
                 {
                     Quaternion targetRotation = Quaternion.LookRotation(directionToNode);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationAmount * Time.deltaTime);
+                    transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotationAmount * Time.deltaTime);
                 }
             }
         }
@@ -491,7 +622,7 @@ public class UnitController : MonoBehaviour, ISelectable
                 direction.y = 0;
 
                 Quaternion targetRotation = Quaternion.LookRotation(direction);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationAmount* Time.deltaTime);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotationAmount* Time.deltaTime);
             }
         }
 
@@ -548,13 +679,15 @@ public class UnitController : MonoBehaviour, ISelectable
 
     private DropOffPoint FindNearestDropOff()
     {
-        DropOffPoint[] dropOffs = FindObjectsByType<DropOffPoint>(FindObjectsSortMode.None);
         DropOffPoint nearest = null;
         float closestDist = Mathf.Infinity;
 
-        foreach (DropOffPoint d in dropOffs)
+        foreach (DropOffPoint d in  NodeRegistry.Instance.dropOffPoints)
         {
-            float dist = Vector3.Distance(transform.position, d.transform.position);
+            if (d == null) continue;
+
+            float dist = (d.transform.position - transform.position).sqrMagnitude;
+            
             if (dist < closestDist)
             {
                 closestDist = dist;

@@ -26,8 +26,9 @@ public class BuildingController : MonoBehaviour, ISelectable
 
     private void Start()
     {
-        UpdateHealthBar();
+        
         buildingStats = GetComponent<BuildingStats>();
+        UpdateHealthBar();
 
         if (selectionIndicator != null)
         {
@@ -61,33 +62,17 @@ public class BuildingController : MonoBehaviour, ISelectable
         // Hide building UI
     }
 
-    public void TakeDamage(float amount)
-    {
-
-
-        float effectiveDamage = Mathf.Max(0, amount - buildingStats.armor);
-        buildingStats.currentHealth -= effectiveDamage;
-        buildingStats.currentHealth = Mathf.Clamp(buildingStats.currentHealth, 0, buildingStats.maxHealth);
-
-        UpdateHealthBar();
-
-        if (buildingStats.currentHealth <= 0)
-        {
-            Die();
-        }
-    }
-
     private void UpdateHealthBar()
     {
-        if (healthBar != null && buildingStats != null)
+        if (healthBar == null ||
+            buildingStats == null)
         {
-            healthBar.fillAmount = buildingStats.currentHealth / buildingStats.maxHealth;
+            return;
         }
-    }
 
-    private void Die()
-    {
-        Destroy(gameObject);
+        healthBar.fillAmount =
+            (float)buildingStats.currentHealth /
+            buildingStats.maxHealth;
     }
 
     private void UpdateSelectionFade()
@@ -129,6 +114,7 @@ public class BuildingController : MonoBehaviour, ISelectable
 
     private void Update()
     {
+        UpdateHealthBar();
         UpdateSelectionFade();
     }
 

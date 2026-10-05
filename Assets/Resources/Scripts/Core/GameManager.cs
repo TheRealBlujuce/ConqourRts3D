@@ -1,6 +1,7 @@
 using System.Collections;
 using TMPro;
 using Unity.AI.Navigation;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -26,12 +27,18 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private CameraController cameraController;
 	[SerializeField] private InstancedTreeManager treeManager;
 	[SerializeField] private PopulationManager populationManager;
-
+	[SerializeField] private WaveSpawner waveSpawner;
+	[SerializeField] private ThreatManager threatManager;
 
 	[SerializeField] private TextMeshProUGUI currentFoodText;
 	[SerializeField] private TextMeshProUGUI currentLumberText;
 	[SerializeField] private TextMeshProUGUI currentGoldText;
 	[SerializeField] private TextMeshProUGUI currentPopulationText;
+	[SerializeField] private MinimapManager minimapManager;
+	[SerializeField] private ControlGroupManager controlGroupManager;
+	[SerializeField] private SelectionManager selectionManager;
+	
+	public bool inDebug = false;
 
     private void Awake()
     {
@@ -51,9 +58,7 @@ public class GameManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-
 		StartCoroutine(GetDependenciesAndGenerateGame());
-
     }
 
 	private IEnumerator GetDependenciesAndGenerateGame()
@@ -74,14 +79,12 @@ public class GameManager : MonoBehaviour
 		selectionBox.SetCamera(Camera.main);
 
 		cameraController = FindFirstObjectByType<CameraController>();
-		BoxCollider[] bounds = FindObjectsByType<BoxCollider>(FindObjectsSortMode.None);
-		
-		foreach (BoxCollider collider in bounds)
+
+		Terrain terrain = FindFirstObjectByType<Terrain>();
+
+		if (cameraController != null && terrain != null)
 		{
-			if (collider.CompareTag("Bounds") == true)
-			{
-				cameraController.cameraBounds = collider;
-			}
+			cameraController.SetTerrain(terrain);
 		}
 
 		resourceManager = FindFirstObjectByType<ResourceManager>();
@@ -92,6 +95,21 @@ public class GameManager : MonoBehaviour
 		populationManager.RecalculateCurrentPopulation();
 
 		factionSwapper = GetComponent<FactionSet>();
+
+		waveSpawner = FindFirstObjectByType<WaveSpawner>();
+		waveSpawner.MapTerrain = terrain;
+
+		minimapManager = FindFirstObjectByType<MinimapManager>();
+		minimapManager.SetMainCamera(Camera.main);
+		minimapManager.SetCameraController(cameraController);
+
+		threatManager = FindFirstObjectByType<ThreatManager>();
+
+		selectionManager = GetComponent<SelectionManager>();
+
+		controlGroupManager = GetComponent<ControlGroupManager>();
+		controlGroupManager.SetCameraController(cameraController);
+		controlGroupManager.SetSelectionManager(selectionManager);
 
 		InitializeGameDependencies();
 
@@ -113,7 +131,6 @@ public class GameManager : MonoBehaviour
         {
             populationManager = FindFirstObjectByType<PopulationManager>();
         }
-
 
 		currentFoodText = GameObject.Find("FoodText").GetComponent<TextMeshProUGUI>();
 		currentGoldText = GameObject.Find("GoldText").GetComponent<TextMeshProUGUI>();
@@ -140,38 +157,41 @@ public class GameManager : MonoBehaviour
 
 	private void Update()
 	{
-		if (Input.GetKeyDown(KeyCode.RightShift) && Input.GetKeyDown(KeyCode.R))
+		if (inDebug)
 		{
-			// Get the currently active scene and reload it
-			Scene currentScene = SceneManager.GetActiveScene();
-			SceneManager.LoadScene(currentScene.name);
-		}
-		
-		if (Input.GetKeyDown(KeyCode.N))
-		{
-			// Get the currently active scene and reload it
-			navUpdater.UpdateNavMesh();
-		}
-
-		if (Input.GetKeyDown(KeyCode.F))
-		{
-			// Move to the next faction
-			currentFaction++;
-
-			// If we've gone past the final faction,
-			// loop back to the first faction
-			if ((int)currentFaction >= System.Enum.GetValues(
-					typeof(FactionSet.Faction)).Length)
+			if (Input.GetKey(KeyCode.RightShift) && Input.GetKeyDown(KeyCode.R))
 			{
-				currentFaction = 0;
+				// Get the currently active scene and reload it
+				Scene currentScene = SceneManager.GetActiveScene();
+				SceneManager.LoadScene(currentScene.name);
+			}
+			
+			if (Input.GetKeyDown(KeyCode.N))
+			{
+				// Get the currently active scene and reload it
+				navUpdater.UpdateNavMesh();
 			}
 
-			// Tell the faction swapper which faction we're changing to
-			factionSwapper.selectedFaction = currentFaction;
+			if (Input.GetKeyDown(KeyCode.F))
+			{
+				// Move to the next faction
+				currentFaction++;
 
-			Debug.Log($"Swapping player faction to: {currentFaction}");
+				// If we've gone past the final faction,
+				// loop back to the first faction
+				if ((int)currentFaction >= System.Enum.GetValues(
+						typeof(FactionSet.Faction)).Length)
+				{
+					currentFaction = 0;
+				}
 
-			factionSwapper.SwapModels();
+				// Tell the faction swapper which faction we're changing to
+				factionSwapper.selectedFaction = currentFaction;
+
+				Debug.Log($"Swapping player faction to: {currentFaction}");
+
+				factionSwapper.SwapModels();
+			}
 		}
 	}
 
@@ -179,4 +199,8 @@ public class GameManager : MonoBehaviour
 	public PopulationManager GetPopulationManager() => populationManager;
 
 	public FactionSet GetFactionSet() => factionSwapper;
+	public InstancedTreeManager GetTreeManager() => treeManager;
+	
+	public ThreatManager GetThreatManager() => threatManager;
+	public CameraController GetCameraController() => cameraController;
 }

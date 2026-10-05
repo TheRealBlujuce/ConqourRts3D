@@ -3,7 +3,12 @@ guid: 8a14bb3d5e9c76449addbaa8825b8616
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: undead_units
+    second: {fileID: 2100000, guid: 2f73286b9f079144780aa83bb2df399d, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

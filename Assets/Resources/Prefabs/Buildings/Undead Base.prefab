@@ -235,6 +235,7 @@ GameObject:
   - component: {fileID: -8094303055180100476}
   - component: {fileID: -991597464746701136}
   - component: {fileID: 4830012513814774751}
+  - component: {fileID: -1705709205055822247}
   - component: {fileID: 5574085064433005789}
   - component: {fileID: 676491222953365013}
   - component: {fileID: 2759626367666107813}
@@ -308,15 +309,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: caa72f495e4fa5b47b2f0fa27d78cdac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 100
-  currentHealth: 0
-  armor: 1
+  buildingType: 0
+  combatTeam: 0
+  maxHealth: 2500
+  currentHealth: 2500
+  armor: 3
   populationProvided: 20
   providesPopulation: 1
-  townRadius: 64
   noResourceRadius: 14
   resourceRadius: 20
   isPlayerBase: 1
+  clearRadius: 24
+--- !u!114 &-1705709205055822247
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8179754000871946100}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6b86cd6b885e494faaf84d316847ec1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   clearRadius: 24
 --- !u!114 &5574085064433005789
 MonoBehaviour:

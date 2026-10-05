@@ -38,7 +38,7 @@ public class MapGenerator : MonoBehaviour
     [Header("References")]
     public Terrain terrain;
     private GameManager gameManager;
-
+    
     private Vector3 basePosition;
     private Vector3 terrainSize;
     private Vector3 terrainPosition;
@@ -76,18 +76,20 @@ public class MapGenerator : MonoBehaviour
         
         GetFactionPrefabs();
         
+        gameManager.GetTreeManager().GenerateTrees();
+        
         // 1. Spawn the base in the CENTER of the map
         SpawnBase();
 
         // 2. Spawn workers around the base
         SpawnWorkers();
-
+        
         // 3. Spawn starting resources around the base
         SpawnResourcesAroundBase(goldPrefab, startingGoldNearBase);
 
         // 4. Spawn extra random resources
         SpawnRandomResources(goldPrefab, totalGold);
-
+        
         if (navUpdater != null)
         {
             navUpdater.UpdateNavMesh();
@@ -116,6 +118,14 @@ public class MapGenerator : MonoBehaviour
             basePosition,
             baseRotation
         );
+
+        InstancedTreeClearer treeClearer = playerBase.GetComponent<InstancedTreeClearer>();
+
+        if (treeClearer != null)
+        {
+            treeClearer.ClearTrees();
+        }
+
 
         playerBase.layer = LayerMask.NameToLayer("Building");
     }

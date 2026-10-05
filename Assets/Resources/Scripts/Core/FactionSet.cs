@@ -23,6 +23,7 @@ public class FactionSet : MonoBehaviour
     public GameObject playerHouse_Orc;
     public GameObject playerStorehouse_Orc;
     public GameObject playerBarracks_Orc;
+    public GameObject playerTower_Orc;
     public GameObject playerWorker_Orc;
     public GameObject playerBasicMelee_Orc;
 
@@ -36,6 +37,7 @@ public class FactionSet : MonoBehaviour
     public GameObject playerHouse_Human;
     public GameObject playerStorehouse_Human;
     public GameObject playerBarracks_Human;
+    public GameObject playerTower_Human;
     public GameObject playerWorker_Human;
     public GameObject playerBasicMelee_Human;
 
@@ -49,6 +51,7 @@ public class FactionSet : MonoBehaviour
     public GameObject playerHouse_Undead;
     public GameObject playerBarracks_Undead;
     public GameObject playerStorehouse_Undead;
+    public GameObject playerTower_Undead;
     public GameObject playerWorker_Undead;
     public GameObject playerBasicMelee_Undead;
 
@@ -62,6 +65,7 @@ public class FactionSet : MonoBehaviour
     public GameObject playerHouse_Elf;
     public GameObject playerStorehouse_Elf;
     public GameObject playerBarracks_Elf;
+    public GameObject playerTower_Elf;
     public GameObject playerWorker_Elf;
     public GameObject playerBasicMelee_Elf;
 
@@ -131,6 +135,9 @@ public class FactionSet : MonoBehaviour
                     case FactionObject.ObjectType.Barracks:
                         return playerBarracks_Orc;
 
+                    case FactionObject.ObjectType.Tower:
+                        return playerTower_Orc;
+
                     case FactionObject.ObjectType.Worker:
                         return playerWorker_Orc;
 
@@ -160,6 +167,9 @@ public class FactionSet : MonoBehaviour
                     
                     case FactionObject.ObjectType.Barracks:
                         return playerBarracks_Human;
+
+                    case FactionObject.ObjectType.Tower:
+                        return playerTower_Human;
 
                     case FactionObject.ObjectType.Worker:
                         return playerWorker_Human;
@@ -191,6 +201,9 @@ public class FactionSet : MonoBehaviour
                     case FactionObject.ObjectType.Barracks:
                         return playerBarracks_Undead;
 
+                    case FactionObject.ObjectType.Tower:
+                        return playerTower_Undead;
+
                     case FactionObject.ObjectType.Worker:
                         return playerWorker_Undead;
 
@@ -220,6 +233,9 @@ public class FactionSet : MonoBehaviour
 
                     case FactionObject.ObjectType.Barracks:
                         return playerBarracks_Elf;
+
+                    case FactionObject.ObjectType.Tower:
+                        return playerTower_Elf;
 
                     case FactionObject.ObjectType.Worker:
                         return playerWorker_Elf;

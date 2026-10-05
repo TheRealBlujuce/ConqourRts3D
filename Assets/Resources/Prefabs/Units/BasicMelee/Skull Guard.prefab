@@ -51,7 +51,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d5ff105714a64547962e922133f5169, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  objectType: 6
+  objectType: 7
 --- !u!114 &8474147207856560869
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -64,13 +64,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18c7b2827f149ad4b8efa700a11ac1d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 10
-  maxHealth: 100
-  health: 100
-  damage: 10
-  armor: 3
-  populationCost: 2
-  unitType: 2
+  moveSpeed: 8
+  maxHealth: 75
+  health: 75
+  damage: 12
+  armor: 1
+  populationCost: 1
+  unitType: 1
   isPlayerUnit: 1
   threatAmount: 2
   combatTeam: 0
@@ -89,19 +89,23 @@ MonoBehaviour:
   agent: {fileID: 0}
   currentState: 0
   selectionIndicator: {fileID: 6135941050554514711}
-  healthBar: {fileID: 8129981705929868242}
+  healthBar: {fileID: 2050344557529995637}
+  healthBarBack: {fileID: 6027826504092768955}
   fadeSpeed: 8
   hoverAlpha: 0.5
   isSelected: 0
   rotationAmount: 6
+  destinationTolerance: 0.15
+  slowingDistance: 1.25
+  minimumMoveDistance: 0.1
   minDistanceToResourceNode: 4
   minDistanceToDropOff: 8
   currentNode: {fileID: 0}
   unitAnimator: {fileID: 4713723964987527628}
   isAttackMoveTargeting: 0
   isAttackMoving: 0
-  enemySearchRadius: 8
-  enemySearchInterval: 0.25
+  enemySearchRadius: 64
+  enemySearchInterval: 0.1
   canMove: 1
   currentTarget: {fileID: 0}
 --- !u!114 &8022988201682758879
@@ -127,11 +131,11 @@ NavMeshAgent:
   m_GameObject: {fileID: 38670299232851612}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 1.35
+  m_Radius: 1
   m_Speed: 3.5
-  m_Acceleration: 100
+  m_Acceleration: 1000
   avoidancePriority: 50
-  m_AngularSpeed: 100
+  m_AngularSpeed: 400
   m_StoppingDistance: 0.25
   m_AutoTraverseOffMeshLink: 0
   m_AutoBraking: 1
@@ -162,7 +166,7 @@ CapsuleCollider:
   m_Radius: 1.35
   m_Height: 5
   m_Direction: 1
-  m_Center: {x: 0, y: 1.5, z: 0}
+  m_Center: {x: 0, y: 2.25, z: 0}
 --- !u!1 &655692387528497133
 GameObject:
   m_ObjectHideFlags: 0
@@ -194,6 +198,7 @@ RectTransform:
   m_LocalScale: {x: 0.6153846, y: 0.8791209, z: 0.8791206}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1750649134564074209}
   - {fileID: 3463386365810051682}
   m_Father: {fileID: 4902634595775287535}
   m_LocalEulerAnglesHint: {x: 45, y: 0, z: 0}
@@ -265,6 +270,81 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!1 &1574118798840158529
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1750649134564074209}
+  - component: {fileID: 478025434472670173}
+  - component: {fileID: 6027826504092768955}
+  m_Layer: 5
+  m_Name: Healthbar Back
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1750649134564074209
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1574118798840158529}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3549673106502644740}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 2, y: 0.35}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &478025434472670173
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1574118798840158529}
+  m_CullTransparentMesh: 1
+--- !u!114 &6027826504092768955
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1574118798840158529}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.6862745}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 0
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 2054363375, guid: ded297e5ad97ae441ae48a6afe621428, type: 3}
+  m_Type: 3
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 0
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &3428798316939587109
 GameObject:
   m_ObjectHideFlags: 0

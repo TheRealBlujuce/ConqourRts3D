@@ -188,6 +188,7 @@ GameObject:
   - component: {fileID: 7382500534587666293}
   - component: {fileID: -6307039451354484025}
   - component: {fileID: 6795792983840663326}
+  - component: {fileID: 704055351540026690}
   - component: {fileID: 4340901718655336795}
   - component: {fileID: 4401541367020474825}
   - component: {fileID: 8559723890647929371}
@@ -208,7 +209,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
+  m_LocalScale: {x: 0.7, y: 0.7, z: 0.7}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4080874449225085458}
@@ -265,8 +266,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: caa72f495e4fa5b47b2f0fa27d78cdac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 100
-  currentHealth: 0
+  buildingType: 2
+  combatTeam: 0
+  maxHealth: 500
+  currentHealth: 500
   armor: 1
   populationProvided: 0
   providesPopulation: 1
@@ -274,6 +277,19 @@ MonoBehaviour:
   resourceRadius: 40
   isPlayerBase: 0
   clearRadius: 6
+--- !u!114 &704055351540026690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 945397006792846903}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6b86cd6b885e494faaf84d316847ec1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clearRadius: 12
 --- !u!114 &4340901718655336795
 MonoBehaviour:
   m_ObjectHideFlags: 0

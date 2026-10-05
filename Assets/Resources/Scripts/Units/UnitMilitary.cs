@@ -187,6 +187,19 @@ public class UnitMilitary : MonoBehaviour
 			"isAttacking"
 		);
 
+        MonoBehaviour targetBehaviour = target as MonoBehaviour;
+
+        if (targetBehaviour != null)
+        {
+            UnitStats targetStats =
+                targetBehaviour.GetComponent<UnitStats>();
+
+            if (targetStats != null)
+            {
+                targetStats.NotifyAttacker(gameObject);
+            }
+        }
+
         target.TakeDamage(stats.damage);
 
         // Later:

@@ -11,6 +11,7 @@ public class FactionObject : MonoBehaviour
         Storehouse,
         Barracks,
         Altar,
+        Tower,
         Worker,
         BasicMelee,
         BasicRanged,

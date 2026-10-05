@@ -189,6 +189,7 @@ GameObject:
   - component: {fileID: 2653184046957267372}
   - component: {fileID: 338466259011296288}
   - component: {fileID: 4830012513814774751}
+  - component: {fileID: -3843413095176776007}
   - component: {fileID: 5574085064433005789}
   - component: {fileID: 676491222953365013}
   - component: {fileID: 2759626367666107813}
@@ -261,8 +262,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: caa72f495e4fa5b47b2f0fa27d78cdac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 100
-  currentHealth: 0
+  buildingType: 3
+  combatTeam: 0
+  maxHealth: 1500
+  currentHealth: 1500
   armor: 10
   populationProvided: 0
   providesPopulation: 0
@@ -270,6 +273,19 @@ MonoBehaviour:
   resourceRadius: 20
   isPlayerBase: 0
   clearRadius: 12
+--- !u!114 &-3843413095176776007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8179754000871946100}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6b86cd6b885e494faaf84d316847ec1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clearRadius: 16
 --- !u!114 &5574085064433005789
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -457,7 +473,7 @@ Transform:
   m_GameObject: {fileID: 8937614065484955182}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 7.82}
+  m_LocalPosition: {x: 0, y: 0, z: 9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -529,17 +545,17 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 3a0dcf031b5e43d4aa399677acbf5c07,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.8
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 3a0dcf031b5e43d4aa399677acbf5c07,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.8
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 3a0dcf031b5e43d4aa399677acbf5c07,
         type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.8
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 3a0dcf031b5e43d4aa399677acbf5c07,
         type: 3}

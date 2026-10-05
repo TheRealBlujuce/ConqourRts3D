@@ -139,7 +139,7 @@ MonoBehaviour:
   goldCost: 250
   lumberCost: 150
   foodCost: 0
-  gridSize: 4
+  gridSize: 8
   groundY: -50
   canPlaceMat: {fileID: 2100000, guid: 4ebfda586c6b0894f865746cc6a888bb, type: 2}
   cannotPlaceMat: {fileID: 2100000, guid: 0a6cbd9fd5a51844b8d92f5f1491ace2, type: 2}

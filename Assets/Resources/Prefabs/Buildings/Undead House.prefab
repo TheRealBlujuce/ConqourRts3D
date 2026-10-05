@@ -113,6 +113,7 @@ GameObject:
   - component: {fileID: -4228846986451435831}
   - component: {fileID: -6387845024685402751}
   - component: {fileID: 6795792983840663326}
+  - component: {fileID: 3102721913232945158}
   - component: {fileID: 2839748221601001068}
   - component: {fileID: 4401541367020474825}
   - component: {fileID: 8559723890647929371}
@@ -184,8 +185,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: caa72f495e4fa5b47b2f0fa27d78cdac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 100
-  currentHealth: 0
+  buildingType: 1
+  combatTeam: 0
+  maxHealth: 500
+  currentHealth: 500
   armor: 1
   populationProvided: 5
   providesPopulation: 1
@@ -193,6 +196,19 @@ MonoBehaviour:
   resourceRadius: 40
   isPlayerBase: 0
   clearRadius: 6
+--- !u!114 &3102721913232945158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 945397006792846903}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6b86cd6b885e494faaf84d316847ec1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clearRadius: 12
 --- !u!114 &2839748221601001068
 MonoBehaviour:
   m_ObjectHideFlags: 0
